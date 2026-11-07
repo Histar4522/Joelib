@@ -1,0 +1,8 @@
+// A Troubled Day in the Life of Joe (for cjoe checker testing)
+Joe remembers unused_money as 100. // Warning: unused variable
+
+Joe gives up. // Error: break outside loop
+
+Joe delivers 42. // Error: deliver outside function
+
+Joe sets mysterious_debt to 500. // Error: unknown variable

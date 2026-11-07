@@ -1,0 +1,13 @@
+// The Tragedy of Fibonacci
+To fib with n:
+    If Joe believes n <= 1:
+        Joe delivers n.
+    Otherwise:
+        Joe delivers fib(n - 1) + fib(n - 2).
+    That is that.
+That's how Joe does it.
+
+Joe remembers target as 10.
+Joe yells "Calculating fibonacci(" + target + ")...".
+Joe remembers result as fib(target).
+Joe yells "Joe calculated fibonacci(" + target + ") = " + result.

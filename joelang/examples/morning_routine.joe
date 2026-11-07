@@ -1,0 +1,21 @@
+// Chapter 1: The Morning Routine of Joe
+Joe calls for std.math.
+
+Joe yells "--- Joe Wakes Up ---".
+
+Joe remembers bank_account as 30.
+Joe remembers coffee_price as 5.
+Joe remembers coffees_bought as 0.
+
+While Joe worries about bank_account >= coffee_price:
+    bank_account turns into bank_account - coffee_price.
+    coffees_bought turns into coffees_bought + 1.
+    Joe yells "Joe drank cup #" + coffees_bought + ", remaining funds: $" + bank_account.
+
+    If Joe believes coffees_bought >= 3:
+        Joe yells "Joe is vibrating at high frequencies!".
+        Joe gives up.
+    That is that.
+Joe moves on.
+
+Joe yells "Joe survived the morning.".

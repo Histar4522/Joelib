@@ -1,0 +1,27 @@
+// Cup of Joe Standard Library Showcase
+Joe calls for std.math.
+Joe calls for std.strings.
+Joe calls for std.collections.
+Joe calls for std.json.
+
+Joe yells "=== Cup of Joe Showcase ===".
+
+// Math
+Joe remembers pi_approx as std.math.round(std.math.pi * 100) / 100.
+Joe yells "Approximation of Pi: " + pi_approx.
+
+// Strings
+Joe remembers sentence as "   joe contemplates existence   ".
+Joe remembers trimmed as std.strings.trim(sentence).
+Joe remembers excited as std.strings.to_upper(trimmed) + "!".
+Joe yells "Excited Joe: " + excited.
+
+// Collections
+Joe remembers grocery as ["beans", "water", "sugar"].
+std.collections.push(grocery, "more beans").
+Joe yells "Grocery list has " + len(grocery) + " items: " + grocery.
+
+// JSON
+Joe remembers profile_json as "{\"name\": \"Joe\", \"status\": \"sleepy\"}".
+Joe remembers profile as std.json.parse(profile_json).
+Joe yells "Profile status: " + profile.status.

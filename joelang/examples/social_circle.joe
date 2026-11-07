@@ -1,0 +1,22 @@
+// Chapter 3: Cyclic Entanglements in Joe's Social Circle
+Meet a Person:
+    It has name, friend.
+    To introduce with greeting:
+        Joe yells greeting + ", I am " + jthis.name.
+    That's how Joe does it.
+That's a Person.
+
+Joe remembers alice as a new Person("Alice", nothing).
+Joe remembers bob as a new Person("Bob", alice).
+
+// Create circular reference: Alice <-> Bob
+alice.friend turns into bob.
+
+alice.introduce("Hey there").
+bob.introduce("Greetings").
+
+If Joe believes alice.friend.name == "Bob":
+    Joe yells "Joe confirms Alice and Bob have formed a codependent cycle!".
+That is that.
+
+Joe yells "Dumpster GC tracks and cleans up this cycle seamlessly.".

@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The JoeLang Reference Manual</title>
+  <style>
+    :root {
+      --bg: #fdfdfd;
+      --fg: #222222;
+      --accent: #2b5c8f;
+      --muted: #666666;
+      --border: #e0e0e0;
+      --code-bg: #f4f5f7;
+      --card-bg: #ffffff;
+      --sidebar-w: 260px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #18191a;
+        --fg: #e4e6eb;
+        --accent: #61afef;
+        --muted: #9ba3af;
+        --border: #333842;
+        --code-bg: #21252b;
+        --card-bg: #1e2227;
+      }
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--fg);
+      background-color: var(--bg);
+      display: flex;
+      min-height: 100vh;
+    }
+    nav#sidebar {
+      width: var(--sidebar-w);
+      background: var(--card-bg);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 1.5rem 1rem;
+      flex-shrink: 0;
+    }
+    nav#sidebar h2 {
+      font-size: 1.15rem;
+      margin-bottom: 0.8rem;
+      color: var(--accent);
+    }
+    nav#sidebar ul {
+      list-style: none;
+      margin-bottom: 1.2rem;
+    }
+    nav#sidebar li {
+      margin-bottom: 0.35rem;
+    }
+    nav#sidebar a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      display: block;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+    nav#sidebar a:hover {
+      color: var(--fg);
+      background: var(--code-bg);
+    }
+    main#content {
+      flex: 1;
+      max-width: 900px;
+      padding: 2.5rem 3rem;
+      margin: 0 auto;
+    }
+    h1, h2, h3, h4 {
+      color: var(--fg);
+      margin-top: 1.8rem;
+      margin-bottom: 0.8rem;
+      font-weight: 600;
+    }
+    h1 {
+      font-size: 2.2rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-top: 0;
+      color: var(--accent);
+    }
+    h2 {
+      font-size: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.3rem;
+    }
+    h3 {
+      font-size: 1.15rem;
+    }
+    p, ul, ol, table {
+      margin-bottom: 1rem;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+    li {
+      margin-bottom: 0.3rem;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.9em;
+    }
+    p code, li code, td code {
+      background: var(--code-bg);
+      padding: 0.15em 0.35em;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin-bottom: 1.2rem;
+      line-height: 1.45;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.6rem 0.8rem;
+      text-align: left;
+    }
+    th {
+      background: var(--code-bg);
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background: rgba(0, 0, 0, 0.015);
+    }
+    blockquote {
+      border-left: 4px solid var(--accent);
+      padding: 0.5rem 1rem;
+      color: var(--muted);
+      background: var(--code-bg);
+      margin-bottom: 1rem;
+      border-radius: 0 4px 4px 0;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <nav id="sidebar">
+    <h2>The JoeLang Wiki</h2>
+    <ul>
+      <li><a href="#overview">Overview & Philosophy</a></li>
+      <li><a href="#quickstart">Quickstart</a></li>
+      <li><a href="#grammar">Narrative Syntax</a></li>
+      <li><a href="#datatypes">Values & Data Types</a></li>
+      <li><a href="#variables">Memory & Mutation</a></li>
+      <li><a href="#controlflow">Control Flow</a></li>
+      <li><a href="#habits">Habits (Functions)</a></li>
+      <li><a href="#classes">Archetypes (Classes)</a></li>
+      <li><a href="#memory-model">Dumpster GC Model</a></li>
+      <li><a href="#stdlib">Cup of Joe (StdLib)</a></li>
+      <li><a href="#stdlib-core">&mdash; Subconscious (Prelude)</a></li>
+      <li><a href="#stdlib-io">&mdash; std.io</a></li>
+      <li><a href="#stdlib-file">&mdash; std.file</a></li>
+      <li><a href="#stdlib-net">&mdash; std.net</a></li>
+      <li><a href="#stdlib-math">&mdash; std.math & std.random</a></li>
+      <li><a href="#stdlib-strings">&mdash; std.strings</a></li>
+      <li><a href="#stdlib-collections">&mdash; std.collections</a></li>
+      <li><a href="#stdlib-json">&mdash; std.json</a></li>
+      <li><a href="#stdlib-system">&mdash; std.time & std.os</a></li>
+      <li><a href="#tooling">Tooling Suite</a></li>
+      <li><a href="#tooling-joe">&mdash; joe (Runner & REPL)</a></li>
+      <li><a href="#tooling-cjoe">&mdash; cjoe (Conscience)</a></li>
+      <li><a href="#tooling-djoe">&mdash; djoe (Therapist)</a></li>
+      <li><a href="#examples">Examples Gallery</a></li>
+    </ul>
+  </nav>
+
+  <main id="content">
+    <h1>The Joe Programming Language</h1>
+    <p><strong>The Chronicles of Joe:</strong> An absurdist narrative, dynamically typed, single-threaded programming language where every program reads like a biographical chapter in the chaotic, mundane, yet completely Turing-complete life of a guy named Joe.</p>
+
+    <blockquote>
+      "In JoeLang, programs are not compiled into cold silicon instructions. They are endured by Joe as a series of mental episodes, routines, and existential crises."
+    </blockquote>
+
+    <hr>
+
+    <h2 id="overview">1. Overview & Philosophy</h2>
+    <p>JoeLang rejects sterile C-style semicolons and keywords. Instead of <code>let</code>, <code>while</code>, <code>if</code>, and <code>return</code>, a JoeLang program describes what Joe remembers, worries about, believes, delivers, or screams into the void.</p>
+    <ul>
+      <li><strong>Literary Syntax:</strong> Programs are written as grammatical English sentences ending with periods (<code>.</code>) and colons (<code>:</code>).</li>
+      <li><strong>First-Class GC:</strong> Backed by <code>dumpster</code>, JoeLang natively tracks cyclic reference graphs (e.g., codependent social circles) and cleans them up automatically.</li>
+      <li><strong>Three Personas Tooling:</strong>
+        <ul>
+          <li><code>joe</code>: The Executor, documentary Narrator (<code>--narrate</code>), and Interactive REPL.</li>
+          <li><code>cjoe</code>: Joe's Conscience, a semantic reality checker flagging amnesia and existential errors.</li>
+          <li><code>djoe</code>: Joe's Therapist, an interactive step debugger to guide Joe through his mental crises.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <hr>
+
+    <h2 id="quickstart">2. Quickstart</h2>
+    <p>Compile the binaries using Cargo:</p>
+    <pre><code>cargo build --release</code></pre>
+    <p>Run a script:</p>
+    <pre><code>cargo run --bin joe -- examples/morning_routine.joe</code></pre>
+    <p>Run with documentary voiceover mode:</p>
+    <pre><code>cargo run --bin joe -- --narrate examples/fibonacci.joe</code></pre>
+    <p>Check code consistency with Joe's Conscience:</p>
+    <pre><code>cargo run --bin cjoe -- examples/troubled_joe.joe</code></pre>
+    <p>Enter an interactive therapy session (debugger):</p>
+    <pre><code>cargo run --bin djoe -- examples/morning_routine.joe</code></pre>
+
+    <hr>
+
+    <h2 id="grammar">3. Narrative Syntax Reference</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Traditional Construct</th>
+          <th>JoeLang Narrative Syntax</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>let x = 10;</code></td>
+          <td><code>Joe remembers x as 10.</code></td>
+          <td>Declares and initializes a variable in current scope.</td>
+        </tr>
+        <tr>
+          <td><code>x = 20;</code></td>
+          <td><code>x turns into 20.</code><br>or <code>Joe sets x to 20.</code></td>
+          <td>Mutates an existing variable or field.</td>
+        </tr>
+        <tr>
+          <td><code>println(msg);</code></td>
+          <td><code>Joe yells msg.</code></td>
+          <td>Prints text with a trailing newline.</td>
+        </tr>
+        <tr>
+          <td><code>print(msg);</code></td>
+          <td><code>Joe whispers msg.</code></td>
+          <td>Prints text without trailing newline.</td>
+        </tr>
+        <tr>
+          <td><code>let s = read();</code></td>
+          <td><code>Joe listens to s.</code></td>
+          <td>Reads a line from standard input into <code>s</code>.</td>
+        </tr>
+        <tr>
+          <td><code>if cond { ... } else { ... }</code></td>
+          <td><code>If Joe believes cond: ... Otherwise: ... That is that.</code></td>
+          <td>Conditional branching block.</td>
+        </tr>
+        <tr>
+          <td><code>while cond { ... }</code></td>
+          <td><code>While Joe worries about cond: ... Joe moves on.</code></td>
+          <td>Loop while condition evaluates to truthy.</td>
+        </tr>
+        <tr>
+          <td><code>for item in list { ... }</code></td>
+          <td><code>For every item in list: ... Joe moves on.</code></td>
+          <td>Iterate over list, string characters, or bag keys.</td>
+        </tr>
+        <tr>
+          <td><code>break;</code></td>
+          <td><code>Joe gives up.</code></td>
+          <td>Exits the innermost loop immediately.</td>
+        </tr>
+        <tr>
+          <td><code>continue;</code></td>
+          <td><code>Joe tries anyway.</code></td>
+          <td>Jumps to next iteration of innermost loop.</td>
+        </tr>
+        <tr>
+          <td><code>fn f(a, b) { return a + b; }</code></td>
+          <td><code>To f with a, b: Joe delivers a + b. That's how Joe does it.</code></td>
+          <td>Declares a function (habit).</td>
+        </tr>
+        <tr>
+          <td><code>return val;</code></td>
+          <td><code>Joe delivers val.</code></td>
+          <td>Returns value from habit.</td>
+        </tr>
+        <tr>
+          <td><code>class Person { ... }</code></td>
+          <td><code>Meet a Person: It has name, friend. ... That's a Person.</code></td>
+          <td>Declares a class archetype with fields and methods.</td>
+        </tr>
+        <tr>
+          <td><code>new Person("A", null)</code></td>
+          <td><code>a new Person("A", nothing)</code></td>
+          <td>Instantiates an object.</td>
+        </tr>
+        <tr>
+          <td><code>this</code> / <code>self</code></td>
+          <td><code>jthis</code></td>
+          <td>Instance reference inside class methods.</td>
+        </tr>
+        <tr>
+          <td><code>import mod;</code></td>
+          <td><code>Joe calls for std.math.</code></td>
+          <td>Loads and imports standard library module.</td>
+        </tr>
+        <tr>
+          <td><code>panic(msg);</code></td>
+          <td><code>Joe panics msg.</code></td>
+          <td>Aborts execution with an existential error.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="datatypes">4. Values & Data Types</h2>
+    <p>Joe's world contains six primary value types:</p>
+    <ul>
+      <li><strong>Nothing (<code>nothing</code>):</strong> The void / null representation.</li>
+      <li><strong>Agreement (Boolean):</strong> <code>Joe agrees</code> represents truth, <code>Joe disagrees</code> represents false.</li>
+      <li><strong>Numbers (<code>f64</code>):</strong> Double-precision numbers (e.g. <code>42</code>, <code>3.14</code>, <code>-0.5</code>).</li>
+      <li><strong>Text (Strings):</strong> UTF-8 string literals enclosed in double quotes (e.g. <code>"espresso"</code>). Supports escapes like <code>\n</code>, <code>\t</code>, <code>\"</code>, <code>\\</code>.</li>
+      <li><strong>Lists:</strong> Ordered collections enclosed in brackets (e.g. <code>[1, "coffee", Joe agrees]</code>).</li>
+      <li><strong>Bags (Dictionaries):</strong> Key-value maps enclosed in braces (e.g. <code>{"roast": "dark", "rating": 5}</code>).</li>
+    </ul>
+
+    <hr>
+
+    <h2 id="variables">5. Memory & Mutation</h2>
+    <p>Memory in JoeLang is lexically scoped. Joe remembers variables in his current scope, which shadow outer scopes.</p>
+    <pre><code>Joe remembers savings as 100.
+Joe remembers coffee_cost as 4.
+
+// Mutation:
+savings turns into savings - coffee_cost.
+Joe sets savings to savings - coffee_cost.
+
+Joe yells "Remaining savings: $" + savings.</code></pre>
+
+    <hr>
+
+    <h2 id="controlflow">6. Control Flow</h2>
+
+    <h3>Conditionals</h3>
+    <pre><code>Joe remembers mood as "sleepy".
+
+If Joe believes mood == "sleepy":
+    Joe yells "Joe needs a double shot.".
+Otherwise:
+    Joe yells "Joe contemplates productivity.".
+That is that.</code></pre>
+
+    <h3>While Loops</h3>
+    <pre><code>Joe remembers count as 3.
+
+While Joe worries about count > 0:
+    Joe yells "Ticking down: " + count.
+    count turns into count - 1.
+
+    If Joe believes count == 1:
+        Joe yells "Joe cannot take it anymore!".
+        Joe gives up. // break
+    That is that.
+Joe moves on.</code></pre>
+
+    <h3>For Loops</h3>
+    <pre><code>Joe remembers tasks as ["wake up", "brew coffee", "exist"].
+
+For every task in tasks:
+    Joe yells "Task: " + task.
+Joe moves on.</code></pre>
+
+    <hr>
+
+    <h2 id="habits">7. Habits (Functions)</h2>
+    <p>Functions in JoeLang are referred to as <strong>Habits</strong>. They support recursion, closures, and first-class assignment.</p>
+    <pre><code>To add_beans with amount, extra:
+    Joe delivers amount + extra.
+That's how Joe does it.
+
+Joe remembers total as add_beans(5, 2).
+Joe yells "Total beans: " + total.</code></pre>
+
+    <hr>
+
+    <h2 id="classes">8. Social Archetypes (Classes)</h2>
+    <p>Classes represent types of people or things Joe encounters:</p>
+    <pre><code>Meet a Person:
+    It has name, friend.
+
+    To introduce with greeting:
+        Joe yells greeting + ", I am " + jthis.name.
+    That's how Joe does it.
+That's a Person.
+
+Joe remembers alice as a new Person("Alice", nothing).
+alice.introduce("Hello").</code></pre>
+
+    <hr>
+
+    <h2 id="memory-model">9. Dumpster GC Model</h2>
+    <p>JoeLang uses <strong><code>dumpster</code></strong>, a single-threaded cycle-tracking garbage collector. In object-oriented programming, circular references often cause memory leaks under naive reference counting.</p>
+    <p>In JoeLang, cyclic social circles are automatically tracked and reclaimed:</p>
+    <pre><code>Joe remembers alice as a new Person("Alice", nothing).
+Joe remembers bob as a new Person("Bob", alice).
+
+// Alice references Bob, and Bob references Alice:
+alice.friend turns into bob.
+
+// When alice and bob leave scope, dumpster detects the cycle
+// and reclaims the memory cleanly without manual freeing.</code></pre>
+
+    <hr>
+
+    <h2 id="stdlib">10. "Cup of Joe" Standard Library</h2>
+    <p>All standard library modules are strictly synchronous and single-threaded.</p>
+
+    <h3 id="stdlib-core">10.1 Global Subconscious (Prelude)</h3>
+    <p>Always available in global scope without importing:</p>
+    <ul>
+      <li><code>len(val)</code>: Returns integer length of string, list, or bag.</li>
+      <li><code>type(val)</code>: Returns type name string (<code>"text"</code>, <code>"number"</code>, <code>"list"</code>, etc.).</li>
+      <li><code>str(val)</code>: Converts any value into text representation.</li>
+      <li><code>num(val)</code>: Parses number from string or casts boolean.</li>
+      <li><code>bool(val)</code>: Returns <code>Joe agrees</code> or <code>Joe disagrees</code> based on truthiness.</li>
+      <li><code>reflect()</code>: Confirms cycle-tracking GC is active.</li>
+      <li><code>panic(msg)</code>: Aborts execution with an error message.</li>
+    </ul>
+
+    <h3 id="stdlib-io">10.2 <code>std.io</code> &mdash; Stream & Terminal I/O</h3>
+    <pre><code>Joe calls for std.io.
+
+std.io.println("Standard message").
+std.io.eprintln("Error stream message").
+Joe remembers answer as std.io.read_line().
+std.io.clear_screen().</code></pre>
+
+    <h3 id="stdlib-file">10.3 <code>std.file</code> &mdash; Synchronous File I/O</h3>
+    <pre><code>Joe calls for std.file.
+
+std.file.write("notes.txt", "Day 1: Joe woke up.\n").
+std.file.append("notes.txt", "Day 2: Joe bought coffee.\n").
+
+If Joe believes std.file.exists("notes.txt"):
+    Joe remembers content as std.file.read("notes.txt").
+    Joe remembers lines as std.file.read_lines("notes.txt").
+    Joe yells "File lines: " + len(lines).
+That is that.
+
+std.file.remove("notes.txt").</code></pre>
+
+    <h3 id="stdlib-net">10.4 <code>std.net</code> &mdash; Synchronous Network HTTP</h3>
+    <p>Powered by <code>ureq</code> without asynchronous overhead. Returns a Response Bag containing <code>status</code>, <code>ok</code>, <code>body</code>, and <code>headers</code>:</p>
+    <pre><code>Joe calls for std.net.
+Joe calls for std.json.
+
+Joe remembers res as std.net.fetch("https://httpbin.org/get").
+
+If Joe believes res.ok:
+    Joe yells "HTTP Status: " + res.status.
+    Joe remembers data as std.json.parse(res.body).
+    Joe yells "Origin IP: " + data.origin.
+That is that.</code></pre>
+
+    <h3 id="stdlib-math">10.5 <code>std.math</code> & <code>std.random</code></h3>
+    <pre><code>Joe calls for std.math.
+Joe calls for std.random.
+
+// Constants:
+Joe yells "Pi: " + std.math.pi.
+Joe yells "E: " + std.math.e.
+
+// Functions:
+Joe remembers root as std.math.sqrt(25).
+Joe remembers sine as std.math.sin(std.math.pi / 2).
+Joe remembers pow as std.math.pow(2, 8).
+
+// Random:
+Joe remembers roll as std.random.int(1, 6).
+Joe remembers coin as std.random.choice(["heads", "tails"]).</code></pre>
+
+    <h3 id="stdlib-strings">10.6 <code>std.strings</code> &mdash; Text Utilities</h3>
+    <pre><code>Joe calls for std.strings.
+
+Joe remembers greeting as "  hello world  ".
+Joe remembers clean as std.strings.trim(greeting).
+Joe remembers shout as std.strings.to_upper(clean).
+Joe remembers words as std.strings.split(clean, " ").
+Joe remembers joined as std.strings.join(words, "-").
+
+If Joe believes std.strings.contains(clean, "world"):
+    Joe yells "World confirmed.".
+That is that.</code></pre>
+
+    <h3 id="stdlib-collections">10.7 <code>std.collections</code> &mdash; Lists & Bags</h3>
+    <pre><code>Joe calls for std.collections.
+
+Joe remembers nums as [5, 2, 8, 1].
+std.collections.push(nums, 10).
+Joe remembers sorted as std.collections.sort(nums).
+Joe yells "Sorted: " + sorted.
+
+Joe remembers profile as {"name": "Joe", "age": 30}.
+Joe remembers keys as std.collections.keys(profile).
+Joe remembers has_age as std.collections.has_key(profile, "age").</code></pre>
+
+    <h3 id="stdlib-json">10.8 <code>std.json</code> &mdash; JSON Serialization</h3>
+    <pre><code>Joe calls for std.json.
+
+Joe remembers raw as "{\"item\": \"beans\", \"quantity\": 42}".
+Joe remembers parsed as std.json.parse(raw).
+Joe yells "Parsed item: " + parsed.item.
+
+Joe remembers encoded as std.json.stringify(parsed).
+Joe remembers pretty as std.json.pretty(parsed).</code></pre>
+
+    <h3 id="stdlib-system">10.9 <code>std.time</code> & <code>std.os</code></h3>
+    <pre><code>Joe calls for std.time.
+Joe calls for std.os.
+
+Joe yells "Timestamp: " + std.time.now().
+std.time.nap(500). // sleep for 500ms
+
+Joe remembers args as std.os.args().
+Joe remembers home as std.os.get_env("HOME").</code></pre>
+
+    <hr>
+
+    <h2 id="tooling">11. Tooling Suite</h2>
+
+    <h3 id="tooling-joe">11.1 <code>joe</code> &mdash; The Story Runner & REPL</h3>
+    <ul>
+      <li><code>joe &lt;script.joe&gt;</code>: Runs script to completion.</li>
+      <li><code>joe --narrate &lt;script.joe&gt;</code>: Explains the script using the Narrator (documentary voiceover) alongside execution.</li>
+      <li><code>joe</code>: Starts the interactive REPL. Type <code>Joe rests.</code> to exit.</li>
+    </ul>
+
+    <h3 id="tooling-cjoe">11.2 <code>cjoe</code> &mdash; Joe's Conscience (Linter / Checker)</h3>
+    <p>Validates scripts for semantic errors before running:</p>
+    <ul>
+      <li><code>cjoe &lt;script.joe&gt;</code>: Emits friendly colored diagnostics.</li>
+      <li><code>cjoe --ast &lt;script.joe&gt;</code>: Prints structured AST.</li>
+      <li><code>cjoe --json &lt;script.joe&gt;</code>: Outputs structured JSON diagnostics for IDE and LSP integration.</li>
+    </ul>
+
+    <h3 id="tooling-djoe">11.3 <code>djoe</code> &mdash; Joe's Therapist (Step Debugger)</h3>
+    <p>Interactive terminal debugger with commands:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Command</th>
+          <th>Shortcut</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>step</code></td><td><code>s</code></td><td>Let Joe take one step forward in life.</td></tr>
+        <tr><td><code>continue</code></td><td><code>c</code></td><td>Let Joe live until the next breakpoint or termination.</td></tr>
+        <tr><td><code>break &lt;line&gt;</code></td><td><code>b &lt;line&gt;</code></td><td>Set an existential breakpoint at line.</td></tr>
+        <tr><td><code>clear &lt;line&gt;</code></td><td></td><td>Remove breakpoint at line.</td></tr>
+        <tr><td><code>mind</code></td><td><code>locals</code></td><td>Inspect Joe's local variables in current scope.</td></tr>
+        <tr><td><code>examine &lt;expr&gt;</code></td><td><code>p &lt;expr&gt;</code></td><td>Evaluate expression in current environment.</td></tr>
+        <tr><td><code>trauma</code></td><td><code>stack</code></td><td>Inspect the call stack that brought Joe here.</td></tr>
+        <tr><td><code>list</code></td><td></td><td>Show surrounding source code lines.</td></tr>
+        <tr><td><code>quit</code></td><td><code>q</code></td><td>Abandon Joe to his fate.</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="examples">12. Examples Gallery</h2>
+
+    <h3>Morning Routine</h3>
+    <pre><code>Joe calls for std.math.
+
+Joe yells "--- Joe Wakes Up ---".
+
+Joe remembers bank_account as 30.
+Joe remembers coffee_price as 5.
+Joe remembers coffees_bought as 0.
+
+While Joe worries about bank_account >= coffee_price:
+    bank_account turns into bank_account - coffee_price.
+    coffees_bought turns into coffees_bought + 1.
+    Joe yells "Joe drank cup #" + coffees_bought + ", remaining funds: $" + bank_account.
+
+    If Joe believes coffees_bought >= 3:
+        Joe yells "Joe is vibrating at high frequencies!".
+        Joe gives up.
+    That is that.
+Joe moves on.
+
+Joe yells "Joe survived the morning.".</code></pre>
+
+    <h3>Recursive Fibonacci</h3>
+    <pre><code>To fib with n:
+    If Joe believes n <= 1:
+        Joe delivers n.
+    Otherwise:
+        Joe delivers fib(n - 1) + fib(n - 2).
+    That is that.
+That's how Joe does it.
+
+Joe remembers target as 10.
+Joe yells "Calculating fibonacci(" + target + ")...".
+Joe remembers result as fib(target).
+Joe yells "Joe calculated fibonacci(" + target + ") = " + result.</code></pre>
+
+    <footer>
+      The Joe Programming Language &bull; The Chronicles of Joe &bull; Licensed under MIT
+    </footer>
+  </main>
+</body>
+</html>

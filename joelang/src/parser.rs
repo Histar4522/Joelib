@@ -326,16 +326,20 @@ impl Parser {
 
     fn module_path(&mut self) -> Result<String, String> {
         let mut path = self.consume_ident("Expected module name after 'Joe calls for'")?;
-        while self.match_token(&TokenKind::Dot) {
-            if let TokenKind::Ident(sub) = &self.peek().kind {
-                path.push('.');
-                path.push_str(sub);
-                self.advance();
-            } else {
-                // Trailing dot could be statement terminator
-                self.pos -= 1; // Put back the dot
-                break;
+        while self.check(&TokenKind::Dot) {
+            if let Some(next) = self.peek_next_token() {
+                if matches!(next.kind, TokenKind::Ident(_)) && next.span.line == self.peek().span.line {
+                    self.advance(); // consume Dot
+                    if let TokenKind::Ident(sub) = &self.peek().kind {
+                        let s = sub.clone();
+                        path.push('.');
+                        path.push_str(&s);
+                        self.advance();
+                        continue;
+                    }
+                }
             }
+            break;
         }
         Ok(path)
     }

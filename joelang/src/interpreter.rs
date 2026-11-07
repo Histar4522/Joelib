@@ -1,7 +1,9 @@
 use dumpster::unsync::Gc;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::io::{self, BufRead};
+use std::fs;
+use std::io::{self, BufRead, Write};
+use std::path::Path;
 use crate::ast::*;
 use crate::environment::Environment;
 use crate::stdlib;
@@ -95,7 +97,6 @@ impl Interpreter {
                 match &target.kind {
                     ExprKind::Ident(name) => {
                         if !self.env.borrow_mut().assign(name, val.clone()) {
-                            // If not found in enclosing, define it or error
                             return Err(format!("Joe has no memory of '{}' at {}", name, target.span));
                         }
                     }
@@ -138,41 +139,80 @@ impl Interpreter {
                 }
                 Ok(Control::None)
             }
-            StmtKind::Yell(expr) => {
+            StmtKind::Yell { expr, to } => {
                 let val = self.evaluate_expr(expr)?;
-                let line = format!("{}", val);
-                if let Some(ref mut capture) = self.output_capture {
-                    capture.push(line);
+                if let Some(to_expr) = to {
+                    let target = self.evaluate_expr(to_expr)?;
+                    self.dispatch_keyword_override(&target, "yell", &[val.clone()], &format!("{}\n", val), stmt.span)?;
                 } else {
-                    println!("{}", line);
-                }
-                Ok(Control::None)
-            }
-            StmtKind::Whisper(expr) => {
-                let val = self.evaluate_expr(expr)?;
-                let text = format!("{}", val);
-                if let Some(ref mut capture) = self.output_capture {
-                    if let Some(last) = capture.last_mut() {
-                        last.push_str(&text);
+                    let line = format!("{}", val);
+                    if let Some(ref mut capture) = self.output_capture {
+                        capture.push(line);
                     } else {
-                        capture.push(text);
+                        println!("{}", line);
                     }
-                } else {
-                    print!("{}", text);
                 }
                 Ok(Control::None)
             }
-            StmtKind::Listen(name) => {
-                let stdin = io::stdin();
-                let mut line = String::new();
-                let _ = stdin.lock().read_line(&mut line);
-                if line.ends_with('\n') {
-                    line.pop();
-                    if line.ends_with('\r') {
-                        line.pop();
+            StmtKind::Whisper { expr, to } => {
+                let val = self.evaluate_expr(expr)?;
+                if let Some(to_expr) = to {
+                    let target = self.evaluate_expr(to_expr)?;
+                    self.dispatch_keyword_override(&target, "whisper", &[val.clone()], &format!("{}", val), stmt.span)?;
+                } else {
+                    let text = format!("{}", val);
+                    if let Some(ref mut capture) = self.output_capture {
+                        if let Some(last) = capture.last_mut() {
+                            last.push_str(&text);
+                        } else {
+                            capture.push(text);
+                        }
+                    } else {
+                        print!("{}", text);
                     }
                 }
-                self.env.borrow_mut().define(name, JoeValue::Text(line));
+                Ok(Control::None)
+            }
+            StmtKind::Listen { name, from } => {
+                let text = if let Some(from_expr) = from {
+                    let source = self.evaluate_expr(from_expr)?;
+                    match source {
+                        JoeValue::Person(p) => {
+                            if p.borrow().methods.contains_key("listen") {
+                                let m = p.borrow().methods.get("listen").unwrap().clone();
+                                let method_env = Environment::with_enclosing(m.env.clone());
+                                method_env.borrow_mut().define("jthis", JoeValue::Person(p.clone()));
+                                let habit = JoeValue::Habit(Gc::new(RefCell::new(JoeClosure {
+                                    name: m.name,
+                                    params: m.params,
+                                    body: m.body,
+                                    env: method_env,
+                                })));
+                                let ret = self.call_value(&habit, &[], stmt.span)?;
+                                format!("{}", ret)
+                            } else {
+                                return Err(format!("Person does not override 'listen' at {}", stmt.span));
+                            }
+                        }
+                        JoeValue::Text(path) => {
+                            fs::read_to_string(&path)
+                                .map_err(|e| format!("Failed to listen from file '{}': {}", path, e))?
+                        }
+                        other => return Err(format!("Cannot listen from '{}' at {}", other.type_name(), stmt.span)),
+                    }
+                } else {
+                    let stdin = io::stdin();
+                    let mut line = String::new();
+                    let _ = stdin.lock().read_line(&mut line);
+                    if line.ends_with('\n') {
+                        line.pop();
+                        if line.ends_with('\r') {
+                            line.pop();
+                        }
+                    }
+                    line
+                };
+                self.env.borrow_mut().define(name, JoeValue::Text(text));
                 Ok(Control::None)
             }
             StmtKind::If { cond, then_branch, else_branch } => {
@@ -245,13 +285,66 @@ impl Interpreter {
                 self.classes.insert(name.clone(), (fields.clone(), methods.clone()));
                 Ok(Control::None)
             }
+            StmtKind::Module { name, body } => {
+                let prev_env = self.env.clone();
+                let mod_env = Environment::with_enclosing(prev_env.clone());
+                self.env = mod_env.clone();
+                for s in body {
+                    self.execute_stmt(s)?;
+                }
+                self.env = prev_env;
+
+                let mut exports = HashMap::new();
+                for (k, v) in mod_env.borrow().all_locals() {
+                    exports.insert(k, v);
+                }
+                let mod_bag = JoeValue::Bag(Gc::new(RefCell::new(exports)));
+                self.env.borrow_mut().define(name, mod_bag);
+                Ok(Control::None)
+            }
             StmtKind::Panic(expr) => {
                 let val = self.evaluate_expr(expr)?;
                 Err(format!("Joe panics at {}: {}", stmt.span, val))
             }
             StmtKind::CallFor(path) => {
-                let module = stdlib::load_module(path)
-                    .ok_or_else(|| format!("Joe calls for unknown module '{}' at {}", path, stmt.span))?;
+                let module = if let Some(m) = stdlib::load_module(path) {
+                    m
+                } else {
+                    // Try loading file from disk
+                    let file_candidates = [
+                        format!("{}.joe", path),
+                        path.to_string(),
+                        format!("src/{}.joe", path),
+                    ];
+                    let mut loaded = None;
+                    for candidate in &file_candidates {
+                        if Path::new(candidate).exists() {
+                            let content = fs::read_to_string(candidate)
+                                .map_err(|e| format!("Failed to read module file '{}': {}", candidate, e))?;
+                            let mut tokenizer = crate::tokenizer::Tokenizer::new(&content);
+                            let tokens = tokenizer.tokenize()?;
+                            let mut parser = crate::parser::Parser::new(tokens);
+                            let stmts = parser.parse()?;
+
+                            let prev_env = self.env.clone();
+                            let file_env = Environment::with_enclosing(self.global_env.clone());
+                            self.env = file_env.clone();
+                            for s in &stmts {
+                                self.execute_stmt(s)?;
+                            }
+                            self.env = prev_env;
+
+                            let mut exports = HashMap::new();
+                            for (k, v) in file_env.borrow().all_locals() {
+                                exports.insert(k, v);
+                            }
+                            loaded = Some(JoeValue::Bag(Gc::new(RefCell::new(exports))));
+                            break;
+                        }
+                    }
+                    loaded.ok_or_else(|| format!("Joe calls for unknown module or file '{}' at {}", path, stmt.span))?
+                };
+
                 // Store under full path
                 self.env.borrow_mut().define(path, module.clone());
                 // Handle namespaces like std.math -> std is a bag, math is a property
@@ -270,6 +363,8 @@ impl Interpreter {
                     };
                     root_bag.borrow_mut().insert(sub.to_string(), module.clone());
                     self.env.borrow_mut().define(sub, module);
+                } else if parts.len() == 1 {
+                    self.env.borrow_mut().define(parts[0], module);
                 }
                 Ok(Control::None)
             }
@@ -277,6 +372,58 @@ impl Interpreter {
                 self.evaluate_expr(expr)?;
                 Ok(Control::None)
             }
+        }
+    }
+
+    fn dispatch_keyword_override(
+        &mut self,
+        target: &JoeValue,
+        method_name: &str,
+        args: &[JoeValue],
+        default_file_text: &str,
+        span: crate::token::Span,
+    ) -> Result<(), String> {
+        match target {
+            JoeValue::Person(p) => {
+                if p.borrow().methods.contains_key(method_name) {
+                    let m = p.borrow().methods.get(method_name).unwrap().clone();
+                    let method_env = Environment::with_enclosing(m.env.clone());
+                    method_env.borrow_mut().define("jthis", JoeValue::Person(p.clone()));
+                    let habit = JoeValue::Habit(Gc::new(RefCell::new(JoeClosure {
+                        name: m.name,
+                        params: m.params,
+                        body: m.body,
+                        env: method_env,
+                    })));
+                    self.call_value(&habit, args, span)?;
+                    Ok(())
+                } else {
+                    Err(format!("Archetype '{}' does not override '{}' at {}", p.borrow().class_name, method_name, span))
+                }
+            }
+            JoeValue::Text(path) => {
+                let mut file = fs::OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(path)
+                    .map_err(|e| format!("Failed to open file '{}' for {}: {}", path, method_name, e))?;
+                file.write_all(default_file_text.as_bytes())
+                    .map_err(|e| format!("Failed to write to file '{}': {}", path, e))?;
+                Ok(())
+            }
+            JoeValue::Bag(b) => {
+                if let Some(JoeValue::Habit(h)) = b.borrow().get(method_name) {
+                    let habit = JoeValue::Habit(h.clone());
+                    self.call_value(&habit, args, span)?;
+                    Ok(())
+                } else if let Some(JoeValue::NativeHabit(f)) = b.borrow().get(method_name) {
+                    f(args)?;
+                    Ok(())
+                } else {
+                    Err(format!("Bag does not have a '{}' habit at {}", method_name, span))
+                }
+            }
+            other => Err(format!("Cannot {} to '{}' at {}", method_name, other.type_name(), span)),
         }
     }
 
@@ -361,6 +508,31 @@ impl Interpreter {
 
                 let l = self.evaluate_expr(left)?;
                 let r = self.evaluate_expr(right)?;
+
+                // Check class operator overloading on left operand
+                if let JoeValue::Person(ref p) = l {
+                    let method_name = match op {
+                        BinaryOp::Add => "add",
+                        BinaryOp::Sub => "sub",
+                        BinaryOp::Mul => "mul",
+                        BinaryOp::Div => "div",
+                        BinaryOp::Mod => "mod",
+                        BinaryOp::Eq => "eq",
+                        _ => "",
+                    };
+                    if !method_name.is_empty() && p.borrow().methods.contains_key(method_name) {
+                        let m = p.borrow().methods.get(method_name).unwrap().clone();
+                        let method_env = Environment::with_enclosing(m.env.clone());
+                        method_env.borrow_mut().define("jthis", l.clone());
+                        let habit = JoeValue::Habit(Gc::new(RefCell::new(JoeClosure {
+                            name: m.name,
+                            params: m.params,
+                            body: m.body,
+                            env: method_env,
+                        })));
+                        return self.call_value(&habit, &[r], expr.span);
+                    }
+                }
 
                 match op {
                     BinaryOp::Add => match (&l, &r) {
@@ -498,19 +670,16 @@ impl Interpreter {
 
                 let mut inst = JoeInstance::new(class_name.clone());
 
-                // Evaluate args
                 let mut evaluated_args = Vec::new();
                 for a in args {
                     evaluated_args.push(self.evaluate_expr(a)?);
                 }
 
-                // Populate fields in order
                 for (i, f) in fields.iter().enumerate() {
                     let val = evaluated_args.get(i).cloned().unwrap_or(JoeValue::Nothing);
                     inst.fields.insert(f.clone(), val);
                 }
 
-                // Populate methods
                 for m_stmt in methods {
                     if let StmtKind::Function { name, params, body } = m_stmt.kind {
                         let closure = JoeClosure {
@@ -526,7 +695,6 @@ impl Interpreter {
                 let inst_gc = Gc::new(RefCell::new(inst));
                 let person_val = JoeValue::Person(inst_gc.clone());
 
-                // Call init method if exists
                 if inst_gc.borrow().methods.contains_key("init") {
                     let method = inst_gc.borrow().methods.get("init").unwrap().clone();
                     let method_env = Environment::with_enclosing(method.env.clone());

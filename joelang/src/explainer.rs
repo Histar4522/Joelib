@@ -25,14 +25,26 @@ impl Explainer {
             StmtKind::Assign { target, value } => {
                 format!("{}Joe alters his perception of '{}' to become '{}'.", pad, Self::explain_expr(target), Self::explain_expr(value))
             }
-            StmtKind::Yell(e) => {
-                format!("{}Joe projects his voice into the uncaring void: '{}'.", pad, Self::explain_expr(e))
+            StmtKind::Yell { expr, to } => {
+                if let Some(t) = to {
+                    format!("{}Joe projects his voice into '{}': '{}'.", pad, Self::explain_expr(t), Self::explain_expr(expr))
+                } else {
+                    format!("{}Joe projects his voice into the uncaring void: '{}'.", pad, Self::explain_expr(expr))
+                }
             }
-            StmtKind::Whisper(e) => {
-                format!("{}Joe quietly murmurs to himself: '{}'.", pad, Self::explain_expr(e))
+            StmtKind::Whisper { expr, to } => {
+                if let Some(t) = to {
+                    format!("{}Joe quietly murmurs to '{}': '{}'.", pad, Self::explain_expr(t), Self::explain_expr(expr))
+                } else {
+                    format!("{}Joe quietly murmurs to himself: '{}'.", pad, Self::explain_expr(expr))
+                }
             }
-            StmtKind::Listen(name) => {
-                format!("{}Joe pauses to listen to external reality, storing whatever he hears into '{}'.", pad, name)
+            StmtKind::Listen { name, from } => {
+                if let Some(f) = from {
+                    format!("{}Joe listens intently to '{}', committing the words to '{}'.", pad, Self::explain_expr(f), name)
+                } else {
+                    format!("{}Joe pauses to listen to external reality, storing whatever he hears into '{}'.", pad, name)
+                }
             }
             StmtKind::If { cond, then_branch, else_branch } => {
                 let mut s = format!("{}Joe ponders condition '{}':\n", pad, Self::explain_expr(cond));
@@ -91,6 +103,14 @@ impl Explainer {
                     s.push_str(&format!("{}  - {}\n", pad, Self::explain_stmt(m, 0)));
                 }
                 s.push_str(&format!("{}Such is the nature of a '{}'.", pad, name));
+                s
+            }
+            StmtKind::Module { name, body } => {
+                let mut s = format!("{}Joe establishes an autonomous domain named '{}':\n", pad, name);
+                for sub in body {
+                    s.push_str(&format!("{}  * {}\n", pad, Self::explain_stmt(sub, 0)));
+                }
+                s.push_str(&format!("{}That encompasses the domain of '{}'.", pad, name));
                 s
             }
             StmtKind::Panic(e) => {

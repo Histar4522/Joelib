@@ -94,9 +94,18 @@ pub enum StmtKind {
         target: Expr,
         value: Expr,
     },
-    Yell(Expr),
-    Whisper(Expr),
-    Listen(String),
+    Yell {
+        expr: Expr,
+        to: Option<Expr>,
+    },
+    Whisper {
+        expr: Expr,
+        to: Option<Expr>,
+    },
+    Listen {
+        name: String,
+        from: Option<Expr>,
+    },
     If {
         cond: Expr,
         then_branch: Vec<Stmt>,
@@ -123,6 +132,10 @@ pub enum StmtKind {
         name: String,
         fields: Vec<String>,
         methods: Vec<Stmt>,
+    },
+    Module {
+        name: String,
+        body: Vec<Stmt>,
     },
     Panic(Expr),
     CallFor(String),

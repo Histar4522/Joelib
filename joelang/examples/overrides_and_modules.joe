@@ -1,0 +1,35 @@
+// Demonstrating Declarable Modules & Class Keyword Overrides
+
+// 1. Declarable Modules
+Joe establishes MathHelper:
+    Joe remembers multiplier as 3.
+
+    To triple with x:
+        Joe delivers x * multiplier.
+    That's how Joe does it.
+That's MathHelper.
+
+Joe yells "Tripling 7 yields: " + MathHelper.triple(7).
+
+// 2. Class Keyword Overriding (Yell & Whisper to custom targets)
+Meet a CustomLogger:
+    It has prefix.
+
+    To yell with msg:
+        Joe yells "📢 [" + jthis.prefix + "] " + msg.
+    That's how Joe does it.
+
+    To whisper with msg:
+        Joe yells "🤫 [" + jthis.prefix + " (quiet)] " + msg.
+    That's how Joe does it.
+That's a CustomLogger.
+
+Joe remembers my_log as a new CustomLogger("SYSTEM").
+Joe yells "Important broadcast!" to my_log.
+Joe whispers "Internal diagnostic" to my_log.
+
+// 3. Yelling and Whispering directly to files
+Joe yells "Log entry from Joe" to "examples_run.log".
+Joe whispers " — appended data" to "examples_run.log".
+
+Joe yells "Successfully demonstrated declarable modules and keyword overrides!".

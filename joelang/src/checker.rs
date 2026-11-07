@@ -109,10 +109,19 @@ impl Checker {
                     self.check_expr(target);
                 }
             }
-            StmtKind::Yell(e) | StmtKind::Whisper(e) | StmtKind::Panic(e) => {
+            StmtKind::Yell { expr, to } | StmtKind::Whisper { expr, to } => {
+                self.check_expr(expr);
+                if let Some(t) = to {
+                    self.check_expr(t);
+                }
+            }
+            StmtKind::Panic(e) => {
                 self.check_expr(e);
             }
-            StmtKind::Listen(name) => {
+            StmtKind::Listen { name, from } => {
+                if let Some(f) = from {
+                    self.check_expr(f);
+                }
                 self.declare(name, stmt.span);
             }
             StmtKind::If { cond, then_branch, else_branch } => {
@@ -204,6 +213,14 @@ impl Checker {
                 }
                 for m in methods {
                     self.check_stmt(m);
+                }
+                self.exit_scope();
+            }
+            StmtKind::Module { name, body } => {
+                self.declare(name, stmt.span);
+                self.enter_scope();
+                for s in body {
+                    self.check_stmt(s);
                 }
                 self.exit_scope();
             }

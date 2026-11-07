@@ -103,18 +103,33 @@ impl Parser {
         }
         if self.match_token(&TokenKind::JoeYells) {
             let expr = self.expression()?;
+            let to = if self.match_token(&TokenKind::To) {
+                Some(self.expression()?)
+            } else {
+                None
+            };
             self.consume_optional_period();
-            return Ok(Stmt::new(StmtKind::Yell(expr), span));
+            return Ok(Stmt::new(StmtKind::Yell { expr, to }, span));
         }
         if self.match_token(&TokenKind::JoeWhispers) {
             let expr = self.expression()?;
+            let to = if self.match_token(&TokenKind::To) {
+                Some(self.expression()?)
+            } else {
+                None
+            };
             self.consume_optional_period();
-            return Ok(Stmt::new(StmtKind::Whisper(expr), span));
+            return Ok(Stmt::new(StmtKind::Whisper { expr, to }, span));
         }
         if self.match_token(&TokenKind::JoeListensTo) {
             let name = self.consume_ident("Expected variable name after 'Joe listens to'")?;
+            let from = if self.match_token(&TokenKind::From) {
+                Some(self.expression()?)
+            } else {
+                None
+            };
             self.consume_optional_period();
-            return Ok(Stmt::new(StmtKind::Listen(name), span));
+            return Ok(Stmt::new(StmtKind::Listen { name, from }, span));
         }
         if self.match_token(&TokenKind::IfJoeBelieves) {
             return self.if_stmt(span);
@@ -147,6 +162,9 @@ impl Parser {
         }
         if self.match_token(&TokenKind::MeetA) {
             return self.class_stmt(span);
+        }
+        if self.match_token(&TokenKind::JoeEstablishes) || self.match_token(&TokenKind::Chapter) {
+            return self.module_stmt(span);
         }
         if self.match_token(&TokenKind::JoePanics) {
             let expr = self.expression()?;
@@ -181,17 +199,8 @@ impl Parser {
 
     fn sets_stmt(&mut self, span: Span) -> Result<Stmt, String> {
         let target = self.expression()?;
-        // Consume "to" keyword (ident "to" or TokenKind::ToFunc)
-        if !self.match_token(&TokenKind::ToFunc) {
-            if let TokenKind::Ident(s) = &self.peek().kind {
-                if s == "to" {
-                    self.advance();
-                } else {
-                    return Err(format!("Expected 'to' after target in 'Joe sets ...' at {}", self.peek().span));
-                }
-            } else {
-                return Err(format!("Expected 'to' after target in 'Joe sets ...' at {}", self.peek().span));
-            }
+        if !self.match_token(&TokenKind::To) && !self.match_token(&TokenKind::ToFunc) {
+            return Err(format!("Expected 'to' after target in 'Joe sets ...' at {}", self.peek().span));
         }
         let value = self.expression()?;
         self.consume_optional_period();
@@ -312,16 +321,38 @@ impl Parser {
             }
         }
 
-        if !self.match_token(&TokenKind::ThatsA) {
+        if !self.match_token(&TokenKind::ThatsA) && !self.match_token(&TokenKind::Thats) {
             return Err(format!("Expected \"That's a {}\" to close class at {}", name, self.peek().span));
         }
-        let closing_name = self.consume_ident("Expected class name after \"That's a\"")?;
+        let closing_name = self.consume_ident("Expected class name after \"That's\"")?;
         if closing_name != name {
             return Err(format!("Class started as '{}' but ended as '{}'", name, closing_name));
         }
         self.consume_optional_period();
 
         Ok(Stmt::new(StmtKind::Class { name, fields, methods }, span))
+    }
+
+    fn module_stmt(&mut self, span: Span) -> Result<Stmt, String> {
+        let name = self.consume_ident("Expected module name")?;
+        self.consume_optional_colon();
+
+        let mut body = Vec::new();
+        while !self.is_eof() && !self.check(&TokenKind::Thats) && !self.check(&TokenKind::ThatsA) {
+            body.push(self.statement()?);
+        }
+
+        if self.match_token(&TokenKind::Thats) || self.match_token(&TokenKind::ThatsA) {
+            let closing = self.consume_ident("Expected module name after closing 'That's'")?;
+            if closing != name {
+                return Err(format!("Module started as '{}' but closed as '{}'", name, closing));
+            }
+        } else {
+            return Err(format!("Expected \"That's {}\" to close module at {}", name, self.peek().span));
+        }
+        self.consume_optional_period();
+
+        Ok(Stmt::new(StmtKind::Module { name, body }, span))
     }
 
     fn module_path(&mut self) -> Result<String, String> {

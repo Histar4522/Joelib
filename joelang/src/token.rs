@@ -42,16 +42,21 @@ pub enum TokenKind {
     MeetA,                    // "Meet a"
     ItHas,                    // "It has"
     ThatsA,                   // "That's a"
+    Thats,                    // "That's"
     ANew,                     // "a new"
     JoePanics,                // "Joe panics"
     JoeAttempts,              // "Joe attempts:" or "Joe attempts"
     JoeBreaksDown,            // "Joe breaks down in tears with"
     JoeRecovers,              // "Joe recovers." or "Joe recovers"
     JoeCallsFor,              // "Joe calls for"
+    JoeEstablishes,           // "Joe establishes"
+    Chapter,                  // "Chapter"
 
     // Narrative Values & Modifiers
     As,                       // "as"
     In,                       // "in"
+    To,                       // "to"
+    From,                     // "from"
     JThis,                    // "jthis"
     JoeAgrees,                // "Joe agrees" (true)
     JoeDisagrees,             // "Joe disagrees" (false)

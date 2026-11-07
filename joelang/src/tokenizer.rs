@@ -164,6 +164,8 @@ impl<'a> Tokenizer<'a> {
             ("If Joe believes", TokenKind::IfJoeBelieves),
             ("Joe listens to", TokenKind::JoeListensTo),
             ("Joe calls for", TokenKind::JoeCallsFor),
+            ("Joe establishes", TokenKind::JoeEstablishes),
+            ("Chapter", TokenKind::Chapter),
             ("Joe remembers", TokenKind::JoeRemembers),
             ("Joe whispers", TokenKind::JoeWhispers),
             ("Joe disagrees", TokenKind::JoeDisagrees),
@@ -187,6 +189,7 @@ impl<'a> Tokenizer<'a> {
             ("Joe sets", TokenKind::JoeSets),
             ("For every", TokenKind::ForEvery),
             ("That's a", TokenKind::ThatsA),
+            ("That's", TokenKind::Thats),
             ("Meet a", TokenKind::MeetA),
             ("It has", TokenKind::ItHas),
             ("a new", TokenKind::ANew),
@@ -342,6 +345,8 @@ impl<'a> Tokenizer<'a> {
 
         let kind = match ident.as_str() {
             "To" => TokenKind::ToFunc,
+            "to" => TokenKind::To,
+            "from" => TokenKind::From,
             "with" => TokenKind::With,
             "as" => TokenKind::As,
             "in" => TokenKind::In,

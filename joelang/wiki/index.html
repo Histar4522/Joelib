@@ -182,6 +182,8 @@
       <li><a href="#controlflow">Control Flow</a></li>
       <li><a href="#habits">Habits (Functions)</a></li>
       <li><a href="#classes">Archetypes (Classes)</a></li>
+      <li><a href="#overrides">Keyword & Operator Overrides</a></li>
+      <li><a href="#modules">Declarable Modules</a></li>
       <li><a href="#memory-model">Dumpster GC Model</a></li>
       <li><a href="#stdlib">Cup of Joe (StdLib)</a></li>
       <li><a href="#stdlib-core">&mdash; Subconscious (Prelude)</a></li>
@@ -426,7 +428,72 @@ alice.introduce("Hello").</code></pre>
 
     <hr>
 
-    <h2 id="memory-model">9. Dumpster GC Model</h2>
+    <h2 id="overrides">9. Keyword & Operator Overrides by Classes</h2>
+    <p>Classes in JoeLang can intercept and override core narrative keywords when Joe directs his actions towards a target:</p>
+
+    <h3>Directing Output: <code>Joe yells ... to &lt;target&gt;.</code></h3>
+    <p>When Joe directs a yell or whisper to an archetype instance or file, the class method handles it:</p>
+    <pre><code>Meet a CustomLogger:
+    It has prefix.
+
+    To yell with msg:
+        Joe yells "[" + jthis.prefix + "] " + msg.
+    That's how Joe does it.
+
+    To whisper with msg:
+        Joe whispers "(" + jthis.prefix + " quiet) " + msg.
+    That's how Joe does it.
+That's a CustomLogger.
+
+Joe remembers log as a new CustomLogger("APP").
+Joe yells "Server initiated" to log.     // calls log.yell(...)
+Joe whispers "Debug heartbeat" to log.  // calls log.whisper(...)</code></pre>
+
+    <h3>Yelling & Whispering Directly to Files</h3>
+    <p>If the target of a yell or whisper is a file path string, Joe appends directly to the specified file:</p>
+    <pre><code>Joe yells "Log line with newline" to "audit.log".
+Joe whispers "Raw token without newline" to "audit.log".</code></pre>
+
+    <h3>Binary Operator Overloading</h3>
+    <p>Classes can override standard arithmetic and comparison operators by defining the corresponding habit:</p>
+    <ul>
+      <li><code>+</code> &rarr; <code>To add with other: ...</code></li>
+      <li><code>-</code> &rarr; <code>To sub with other: ...</code></li>
+      <li><code>*</code> &rarr; <code>To mul with other: ...</code></li>
+      <li><code>/</code> &rarr; <code>To div with other: ...</code></li>
+      <li><code>%</code> &rarr; <code>To mod with other: ...</code></li>
+      <li><code>==</code> &rarr; <code>To eq with other: ...</code></li>
+    </ul>
+    <pre><code>Meet a Vector:
+    It has x, y.
+
+    To add with other:
+        Joe delivers a new Vector(jthis.x + other.x, jthis.y + other.y).
+    That's how Joe does it.
+That's a Vector.
+
+Joe remembers v1 as a new Vector(1, 2).
+Joe remembers v2 as a new Vector(10, 20).
+Joe remembers v3 as v1 + v2. // Invokes Vector's add method!</code></pre>
+
+    <hr>
+
+    <h2 id="modules">10. Declarable Modules</h2>
+    <p>In addition to calling external files or packages via <code>Joe calls for ...</code>, Joe can establish self-contained, first-class modules directly within code:</p>
+    <pre><code>Joe establishes MathEngine:
+    Joe remembers factor as 2.
+
+    To double with n:
+        Joe delivers n * factor.
+    That's how Joe does it.
+That's MathEngine.
+
+Joe yells "Double 8 is: " + MathEngine.double(8).</code></pre>
+    <p>Modules encapsulate their declarations and export all defined variables, habits, and archetypes as a <code>Bag</code> accessible under the module name.</p>
+
+    <hr>
+
+    <h2 id="memory-model">11. Dumpster GC Model</h2>
     <p>JoeLang uses <strong><code>dumpster</code></strong>, a single-threaded cycle-tracking garbage collector. In object-oriented programming, circular references often cause memory leaks under naive reference counting.</p>
     <p>In JoeLang, cyclic social circles are automatically tracked and reclaimed:</p>
     <pre><code>Joe remembers alice as a new Person("Alice", nothing).
@@ -440,7 +507,7 @@ alice.friend turns into bob.
 
     <hr>
 
-    <h2 id="stdlib">10. "Cup of Joe" Standard Library</h2>
+    <h2 id="stdlib">12. "Cup of Joe" Standard Library</h2>
     <p>All standard library modules are strictly synchronous and single-threaded.</p>
 
     <h3 id="stdlib-core">10.1 Global Subconscious (Prelude)</h3>
@@ -554,7 +621,7 @@ Joe remembers home as std.os.get_env("HOME").</code></pre>
 
     <hr>
 
-    <h2 id="tooling">11. Tooling Suite</h2>
+    <h2 id="tooling">13. Tooling Suite</h2>
 
     <h3 id="tooling-joe">11.1 <code>joe</code> &mdash; The Story Runner & REPL</h3>
     <ul>
@@ -596,7 +663,7 @@ Joe remembers home as std.os.get_env("HOME").</code></pre>
 
     <hr>
 
-    <h2 id="examples">12. Examples Gallery</h2>
+    <h2 id="examples">14. Examples Gallery</h2>
 
     <h3>Morning Routine</h3>
     <pre><code>Joe calls for std.math.

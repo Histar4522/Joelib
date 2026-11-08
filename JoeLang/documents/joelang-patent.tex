@@ -1,0 +1,341 @@
+% JoeLang Patent-Style Technical Disclosure
+% Standalone, Overleaf-ready LaTeX source. Compile with pdfLaTeX.
+\documentclass[12pt]{article}
+
+\usepackage[margin=0.9in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{array,booktabs,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black,pdftitle={JoeLang Patent-Style Technical Disclosure},pdfauthor={Joe Team Working Draft}}
+\setlist{itemsep=3pt,topsep=4pt}
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{JOELANG TECHNICAL DISCLOSURE}
+\rhead{Joe Team Working Draft}
+\cfoot{Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\definecolor{joeBlue}{HTML}{173A8C}
+\definecolor{joeGrey}{HTML}{F3F5F8}
+\lstdefinestyle{joe}{basicstyle=\ttfamily\small,backgroundcolor=\color{joeGrey},frame=single,rulecolor=\color{joeBlue!40},columns=fullflexible,keepspaces=true,showstringspaces=false,xleftmargin=0.4em,xrightmargin=0.4em,aboveskip=0.6em,belowskip=0.6em}
+
+\newcommand{\JoeLang}{\textsc{JoeLang}}
+\newcommand{\Joebject}{\textsc{Joebject}}
+\newcommand{\term}[1]{\textbf{#1}}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\Large\bfseries PATENT-STYLE TECHNICAL DISCLOSURE\par}
+\vspace{1.2cm}
+{\huge\bfseries A System and Method for Object-Facing\par
+Projection Programming in \JoeLang\par}
+\vspace{0.8cm}
+{\Large Joe Team Working Draft --- Version 0.9\par}
+\vfill
+\begin{minipage}{0.88\textwidth}
+\small
+\textbf{Inventive subject matter.} This disclosure specifies an object-facing programming language, a reversible source-projection process, a compiler architecture, and an online console model collectively designated \JoeLang. It is an internal, creative, patent-style document built as a parody at the beginning of a wider Joe-universe technical record; it is not a legal filing or a claim of a real-world invention.
+
+\vspace{0.6em}
+\textbf{Source basis.} The proposal extends the published Joelib archive: the Joe Wiki; Joeglish grammar and translation work; the Joeriodic Table of Joelements; Joekemon records; \emph{The Great Joetsby}; the \emph{Joelet Speech}; and JOESII art. The authorship attributions supplied for this working draft are recorded in the Sources and Attribution section.
+\end{minipage}
+\vfill
+\textbf{Prepared for the Joe Team}\par
+\today
+\end{titlepage}
+
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+\JoeLang is a source language for programming interactive systems through named objects, called \Joebject{}s, their state, their methods, and their messages. A \JoeLang program is projected into a host representation, initially JavaScript, without changing the intended observable behavior of the program. The disclosure defines: (i) a lexical projection dictionary patterned after the reversible English--Joeglish translation architecture; (ii) a constrained object-facing surface grammar; (iii) a Joebject normalization procedure; (iv) a receiver-first message-routing model; (v) a diagnostic system that reports projection and state errors in Joe vocabulary; and (vi) a web-console architecture for authoring, projecting, and executing programs.
+
+The invention uses an important distinction established across Joelib: a familiar underlying system can remain stable while its Joe-facing representation changes. The Joelements material expressly retains conventional chemical symbols while presenting Joe names, and the translator documents a deterministic, one-to-one transformation with a verified round trip.\cite{joelements,translatorReadme,translatorSource} \JoeLang applies that design lesson to programming: stable JavaScript execution underneath, but a readable, object-facing Joe surface above.
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\section{Field of the Disclosure}
+This disclosure concerns programming-language design, source-to-source compilation, object-oriented and object-facing programming, interactive development environments, deterministic lexical transformation, and diagnostics. More specifically, it concerns a language in which a programmer states behavior through a \Joebject rather than beginning with disconnected procedures or raw host-language structures.
+
+The term ``object-facing'' means that the primary unit encountered by a reader is an entity with a name, state, behavior, and messages. The language therefore asks: \emph{which Joebject receives this request?} before asking: \emph{which low-level operation will execute?} This ordering is both a readability discipline and a compiler constraint.
+
+The disclosed system has four layers:
+\begin{enumerate}
+  \item a \term{source layer}, written in \JoeLang keywords and Joeglish-compatible identifiers;
+  \item a \term{projection layer}, which tokenizes, validates, and maps source to an intermediate representation;
+  \item a \term{execution layer}, which emits JavaScript or an equivalent host representation; and
+  \item a \term{console layer}, which displays the source, projection, result, and diagnostics together.
+\end{enumerate}
+
+\clearpage
+\section{Background and Discovery Record}
+The Joelib repository describes the Joe universe as a projection into the human universe and identifies Joe simultaneously with language, units, chemical elements, and other categories.\cite{joelibReadme} The accompanying wiki records an initial observation of Joe as a possible unit of length, identifies Joeglish as a spoken language, records a 118-member Joeriodic table, preserves literature and speech, and notes that a complete account of Joe mathematics or physics has not yet been found.\cite{wikiHome}
+
+The present disclosure treats that final gap as a design opportunity. If the archive supports a language, a translation discipline, a material naming system, cultural records, visual output, and indexed creature records, then a computational notation can be specified without contradicting the source archive. The discovery record therefore describes the design inference used by the Joe Team: existing Joe materials provide the semantic conventions from which a computational field manual can be reconstructed.
+
+Three observations motivated the reconstruction.
+\begin{enumerate}
+  \item The Joeglish translator describes a deterministic bidirectional mapping, including preservation of capitalization and successful round-trip verification.\cite{translatorReadme,translatorEngine}
+  \item The Joelements project presents 118 familiar elements under Joe names while keeping the standard chemical symbols and formulas meaningful.\cite{joelements}
+  \item The archive is organized as a collection of studies, literature, visual signals, and regional creature lists rather than as a single closed work.\cite{contributing,joekemon,joesii}
+\end{enumerate}
+Together, these observations support a language that changes a program's presentation while keeping an underlying execution substrate inspectable.
+
+\clearpage
+\section{Source Record and Attribution}
+This document uses Joelib as its sole source family. The following attributions are supplied by the Joe Team for this disclosure and are retained here to make the design lineage explicit.
+
+\begin{longtable}{p{0.25\textwidth}p{0.28\textwidth}p{0.39\textwidth}}
+\toprule
+\textbf{Contributor} & \textbf{Archive materials} & \textbf{Design relevance to \JoeLang}\\
+\midrule
+\endhead
+Derek Li & Joelements; \emph{The Great Joetsby}; Joe Wiki & Stable foundations with changed names; archive and discovery framing; vocabulary evidence.\\
+Joe Jin (the central figure himself) & Joeglish Grammar & Joeglish lexical basis and grammatical discipline.\\
+Wayne Xu & Joeglish Translator; JOESII; JOESII art & Deterministic translation, round-trip behavior, console-like visual treatment, and signal presentation.\\
+Matthew DeRoma & Joekemons & Regional cataloguing, names, and package-registry structure.\\
+Emilia Marcucci & \emph{Joelet Speech} & Expressive, performative language evidence and the ``speech as message'' metaphor.\\
+\bottomrule
+\end{longtable}
+
+The repository README indexes the linked Joeglish Grammar, \emph{The Great Joetsby}, the Joelements sheet, Joekemon collection, Joelet Speech, JOESII art, and Joegle Translate.\cite{joelibReadme} The source code and datasets additionally make several operational details inspectable: the translation engine separates words from punctuation, the generator rejects collisions, and the Joelements interface filters a complete element dataset while maintaining the original symbols.\cite{translatorSource,translatorEngine,joelements}
+
+\clearpage
+\section{Definitions}
+For the purposes of this disclosure, the following terms have the meanings below.
+
+\begin{description}[style=nextline,leftmargin=2.9cm,font=\normalfont\bfseries]
+  \item[Joe token] A reserved keyword, identifier convention, literal convention, or diagnostic label belonging to \JoeLang.
+  \item[Joebject] A named runtime entity containing declared state and declared behavior. A Joebject is the default receiver of a method call written within its body.
+  \item[Projection] A deterministic transformation from \JoeLang source to an intermediate representation and then to host code.
+  \item[Host] The execution environment that receives the projected result. Version 0.9 uses JavaScript as the normative host.
+  \item[Receiver] The Joebject or other value immediately to the left of a message operator or method invocation.
+  \item[Message] A request for behavior sent to a receiver, with zero or more ordered arguments.
+  \item[State] Named data declared by a Joebject with the \texttt{has} form and held for that Joebject.
+  \item[Joelement] A standard-library module whose stable host API is wrapped in a Joe-facing name and documentation card.
+  \item[Round trip] The condition in which a reversible lexical projection and its inverse recover the intended source-token sequence, excluding standardized whitespace.
+\end{description}
+
+These terms intentionally distinguish a source spelling from a runtime meaning. For example, a Joelement name may change in the source interface while its host-level implementation remains a stable JavaScript module, just as the Joelements data uses original chemical symbols as disambiguating anchors.\cite{joelements}
+
+\clearpage
+\section{System Overview}
+Figure-free system architecture is described as the following ordered path:
+
+\begin{enumerate}
+  \item The author writes a \JoeLang document in the online console.
+  \item A lexer preserves comments and literal text while classifying source words, punctuation, and structural delimiters.
+  \item A parser recognizes Joebject declarations, state declarations, behaviors, message sends, conditions, and imports.
+  \item A normalizer converts parsed Joebjects into a canonical object graph.
+  \item A lexical projector maps eligible surface identifiers by a validated Joe dictionary, while reserved keywords remain fixed.
+  \item A code generator emits JavaScript classes, objects, imports, and calls.
+  \item A sandbox executes the generated JavaScript and returns output, values, or diagnostics to the console.
+\end{enumerate}
+
+The console must show both the authored source and generated host code. This is a non-negotiable transparency rule: the language can be playful at the source level, but the execution route must remain inspectable. The UI thus resembles a translation view more than a black-box compiler. That choice follows the Joelib translator's dual-panel, directional design and the Joelements project's paired original/Joe naming views.\cite{translatorReadme,joelements}
+
+The normative initial implementation is a browser-hosted console. It requires no server-side compilation for basic programs, stores only optional local history, and runs projected code in an isolated worker or iframe sandbox. Network access, document access, and unrestricted dynamic imports are outside the base language profile.
+
+\clearpage
+\section{Core Language Rules}
+\subsection{The Joebject rule}
+Every program-level unit of behavior belongs to a Joebject, except a small set of console directives. A Joebject has a unique name in its module and may contain state declared with \texttt{has}, behavior declared with \texttt{does}, and optional event handlers declared with \texttt{when}.
+
+\begin{lstlisting}[style=joe]
+joebject Lantern {
+  has charge = 3
+
+  does glow() {
+    show "The lantern glows."
+    give charge
+  }
+}
+\end{lstlisting}
+
+\subsection{The receiver rule}
+A state-changing behavior must have an explicit or inferable receiver. Within a Joebject method, the current Joebject is the default receiver. Outside a method, a message must identify its receiver. This rule makes mutation legible and limits accidental writes to anonymous global state.
+
+\subsection{The state rule}
+State begins with \texttt{has}. A state name may be read in its owning behavior without a receiver prefix. A state update is valid only inside that owner or through a declared behavior. Direct hidden-field mutation is not part of the base profile.
+
+\subsection{The message rule}
+Behavior is invoked as a message: a receiver followed by a behavior name and ordered arguments. The parser rejects a message to an unknown receiver or an unknown behavior before host code is emitted.
+
+\subsection{The projection rule}
+Source transformation must never alter text inside string literals, comments, numeric literals, or literal property keys unless the author explicitly requests a display-only Joeglish rendering. This avoids the common error of turning program data into syntax.
+
+\clearpage
+\section{Normative Grammar}
+The following compact grammar uses extended Backus--Naur form. Braces mean repetition, brackets mean an optional term, and quoted words are reserved terminals.
+
+\begin{lstlisting}[style=joe]
+program       = { directive | joebject-decl | message-stmt } ;
+directive     = import-directive | display-directive ;
+joebject-decl = "joebject" identifier "{" { member } "}" ;
+member        = state-decl | behavior-decl | event-decl ;
+state-decl    = "has" identifier "=" expression ;
+behavior-decl = "does" identifier "(" [ parameters ] ")" block ;
+event-decl    = "when" expression block ;
+block         = "{" { statement } "}" ;
+statement     = state-update | message-stmt | conditional |
+                "show" expression | "give" expression ;
+message-stmt  = expression "." identifier "(" [ arguments ] ")" ;
+conditional   = "when" expression block [ "otherwise" block ] ;
+import-directive = "ask" identifier "from" string ;
+\end{lstlisting}
+
+Reserved keywords are: \texttt{joebject}, \texttt{has}, \texttt{does}, \texttt{when}, \texttt{otherwise}, \texttt{give}, \texttt{show}, \texttt{ask}, \texttt{from}, \texttt{each}, \texttt{in}, \texttt{newjoe}, \texttt{truejoe}, \texttt{falsejoe}, and \texttt{nonejoe}. The first implementation may add library names, but it must not silently reassign a published keyword.
+
+Identifiers should be readable ordinary words or Joeglish-compatible words. The compiler preserves a user-selected display spelling, while a normalized internal identifier is generated for collision avoidance. The dictionary process described below makes this normalization reversible whenever an identifier is fully dictionary-backed.
+
+\clearpage
+\section{Central Algorithms}
+\subsection{Algorithm A: lexical projection}
+Let $S$ be a source sequence. The lexer returns tokens $T=(t_1,\ldots,t_n)$, each with a class $c(t_i)$. Let $M$ be a validated partial bijection between English and Joeglish display words, and let $K$ be the set of reserved Joe tokens. The forward display projection $P$ is:
+\[
+P(t_i)=
+\begin{cases}
+t_i & c(t_i)\in\{\text{string},\text{comment},\text{number},\text{punctuation}\},\\
+t_i & t_i\in K,\\
+M(t_i) & t_i\in\mathrm{dom}(M)\ \text{and display projection is enabled},\\
+t_i & \text{otherwise.}
+\end{cases}
+\]
+The inverse uses $M^{-1}$. A projection is accepted as round-trippable when $M^{-1}(P(T))=T$ after whitespace normalization. The Joeglish generator provides the precedent for checking one-to-one correspondence, excluding collisions, rejecting a generated form equal to its source, and testing reverse lookup.\cite{translatorSource}
+
+\subsection{Algorithm B: Joebject normalization}
+For each parsed Joebject $J$, construct a canonical tuple
+\[
+N(J)=(\mathrm{name},\mathrm{stateMap},\mathrm{behaviorMap},\mathrm{events},\mathrm{imports}).
+\]
+The normalizer checks that state names are unique, behavior names are unique at their declared arity, and every reference inside a behavior resolves either to local state, a parameter, an imported symbol, or an explicit receiver. Any unresolved name is a compile-time diagnostic, not an implicit global.
+
+\subsection{Algorithm C: receiver-first message routing}
+For a message expression $r.m(a_1,\ldots,a_q)$, the compiler resolves $r$ before $m$. If $r$ resolves to a Joebject instance and $m$ exists in its behavior map, the generator emits the equivalent host method call. If either stage fails, it emits no executable host call and reports the closest known receiver or behavior. Resolution is $O(1)$ average time using maps; diagnostic suggestion may add $O(k)$ work for $k$ candidate names.
+
+\subsection{Algorithm D: safe host emission}
+Each Joebject becomes either a JavaScript \texttt{class} or a closure-backed object record. State declarations become owned fields; behaviors become methods; \texttt{show} becomes a console output bridge; \texttt{give} becomes a return statement; and \texttt{ask} becomes an approved module binding. Generated code includes source-span markers so a host exception can be mapped back to the authored Joe source.
+
+\clearpage
+\section{Compiler and Console Embodiment}
+An online implementation contains five visible panes or modes:
+\begin{enumerate}
+  \item \term{Source}: editable JoeLang text with keyword highlighting;
+  \item \term{Projection}: generated JavaScript with mappings exposed rather than concealed;
+  \item \term{Console}: output, returned values, warnings, and errors;
+  \item \term{Joebject Inspector}: a tree of runtime objects, state, and methods; and
+  \item \term{Archive}: contextual reference cards that link Joe vocabulary to Joelib source materials.
+\end{enumerate}
+
+The display may borrow the disciplined duality of translation tools: one side is the text a human chose to write, and the other is the corresponding representation. The console is not merely decoration. It implements a verification procedure. On each run it records the source hash, the normalized Joebject graph, the projection version, the generated-code hash, and the result category. A user can therefore reproduce a diagnostic by preserving a single console record.
+
+The console should provide a ``show the Joe'' command that highlights the path from a selected source token to its generated code. For a dictionary-derived identifier, the UI displays original word, Joeglish display form, mapping source, and reverse check. For a structural keyword, it displays the grammar production that accepted it. For a runtime field, it displays the owning Joebject.
+
+\clearpage
+\section{Library and Archive Model}
+The base library is named \term{Joelib} inside the language but does not overwrite or distribute the original repository. Its modules are called \term{Joelements}: stable host capabilities that receive Joe-facing names, documentation, and examples. A Joelement must state its host capability, allowed inputs, output shape, and whether it can alter state.
+
+Examples of initial module categories are:
+\begin{itemize}
+  \item \texttt{Joerbon}: text values, joining, display-safe formatting, and word operations;
+  \item \texttt{Joexyjin}: timers, scheduled messages, and event signals;
+  \item \texttt{Joerine}: approved local storage and serialization;
+  \item \texttt{Joekel}: numeric utilities and validation;
+  \item regional \term{Joekemon packages}: optional collections grouped by catalog region, with each package presenting a small, inspectable utility set.
+\end{itemize}
+
+The names above are presentation-layer conventions, not assertions that chemistry or the source records dictate a computing API. The Joelements project demonstrates the relevant design pattern: an original identity remains present as an anchor while the Joe name becomes the foreground label.\cite{joelements} Likewise, the Joekemon TSV files provide a useful catalog structure in which regions can organize packages without requiring a user to memorize a single flat namespace.\cite{joekemon}
+
+\clearpage
+\section{Diagnostics, Safety, and Determinism}
+\subsection{Diagnostic classes}
+The compiler emits four ordered classes of findings: lexical, structural, projection, and runtime. Examples include ``Unknown Joebject,'' ``Behavior not observed on receiver,'' ``State may only change through its owner,'' and ``Projection mapping is not reversible.'' Messages must include a source span, a plain-language explanation, and one action a user can take.
+
+\subsection{Safety profile}
+The base online console must execute generated code inside a restricted sandbox. It does not expose browser documents, network requests, host filesystem access, arbitrary module URLs, or parent-window objects. Console output is copied as text. A later, explicitly authorized extension may add selected capabilities through Joelement modules, each of which must expose permission state before a program runs.
+
+\subsection{Determinism profile}
+Given the same language version, dictionary version, source text, approved module versions, and input values, projection output must be byte-stable except for source-map identifiers. Randomness and current time are supplied only through explicit Joelements so they can be recorded, seeded, or mocked.
+
+\subsection{Accessibility profile}
+All console panes must be keyboard reachable. Syntax color cannot be the sole carrier of meaning. Projection and diagnostics must have textual alternatives, and a user must be able to copy generated code and the diagnostic record without relying on drag-and-drop interactions.
+
+\clearpage
+\section{Illustrative Claims}
+The following claims describe the intended scope of the internal technical proposal. They are explanatory rather than legal claims.
+
+\begin{enumerate}[label=\textbf{Claim \arabic*.},leftmargin=1.35cm]
+  \item A computer-implemented method comprising receiving object-facing source text; parsing the text into Joebject declarations; normalizing each Joebject into state and behavior maps; projecting the normalized representation into host code; executing the host code in a sandbox; and presenting source, projection, and result in a common console.
+  \item The method of Claim 1, wherein the source text includes a lexical display mapping governed by a partial bijection whose inverse is verified before a reversible display projection is reported as valid.
+  \item The method of Claim 1, wherein an operation that changes state is accepted only when an owning Joebject receiver is explicit or inferable from the enclosing behavior.
+  \item The method of Claim 1, wherein string literals, comments, numeric literals, and punctuation are excluded from lexical display projection.
+  \item The method of Claim 1, wherein the console visualizes a correspondence between a source token and a generated host-code span.
+  \item A programming language having reserved declarations for a Joebject, owned state, behavior, message routing, conditional behavior, return values, display output, and approved module acquisition.
+  \item The language of Claim 6, wherein package modules are documented as Joelements while retaining a stated host-level capability and permission surface.
+  \item The language of Claim 6, wherein an unresolved symbol produces a compile-time diagnostic rather than an implicit global host-language binding.
+  \item A browser-based development environment that renders authored source, generated host code, runtime output, and Joebject state in separate but linked panels.
+  \item The environment of Claim 9, wherein execution is denied capabilities outside an approved module list.
+\end{enumerate}
+
+\clearpage
+\section{Conclusion and Use Notice}
+\JoeLang is specified as a transparent object-facing language whose source vocabulary is informed by Joelib's documented Joe universe. Its new contributions are the Joebject discipline, receiver-first routing, safe lexical projection, inspectable JavaScript emission, and a console that keeps authoring and execution visibly connected. The specification preserves the distinction between the archive materials and the newly proposed language rules.
+
+This closing notice makes the framing explicit: this patent-style disclosure is a parody and creative design artifact, not a legal patent, a claim of discovery, or a replacement for the cited Joelib works. Source materials remain credited to their named contributors and to the repository record.
+
+\clearpage
+\begin{thebibliography}{99}
+\addcontentsline{toc}{section}{Sources and Attribution}
+
+\bibitem{joelibReadme}
+N0TD3R3K/Joelib contributors. \emph{Joelib README}. Repository index to the Joe Wiki, Joeglish Grammar, \emph{The Great Joetsby}, Joelements, Joekemons, Joelet Speech, JOESII, and Joegle Translate. Available at \url{https://github.com/N0TD3R3K/Joelib/blob/main/README.md}. Accessed 2026-11-06.
+
+\bibitem{wikiHome}
+Derek Li (attribution supplied by the Joe Team). \emph{Joelib Wiki: Home}. Joe-universe introduction, discovery record, and science/culture/literature overview. Available at \url{https://github.com/N0TD3R3K/Joelib/wiki}. Accessed 2026-11-06.
+
+\bibitem{translatorReadme}
+Wayne Xu (attribution supplied by the Joe Team). \emph{Joegle Translate README}. Description of the English--Joeglish interface, deterministic transformation, round-trip property, and source vocabulary. Available at \url{https://github.com/N0TD3R3K/Joelib/blob/main/joeglish_translator/README.md}. Accessed 2026-11-06.
+
+\bibitem{translatorSource}
+Wayne Xu (attribution supplied by the Joe Team). \emph{Joeglish dictionary generator}. Seed pairs, candidate transformation rules, collision checks, and bijectivity assertions. Available at \url{https://github.com/N0TD3R3K/Joelib/blob/main/joeglish_translator/scripts/generateDictionary.js}. Accessed 2026-11-06.
+
+\bibitem{translatorEngine}
+Wayne Xu (attribution supplied by the Joe Team). \emph{Joeglish translation engine}. Tokenization, casing preservation, directional lookup, and round-trip computation. Available at \url{https://github.com/N0TD3R3K/Joelib/blob/main/joeglish_translator/src/engine/joeglishEngine.ts}. Accessed 2026-11-06.
+
+\bibitem{joelements}
+Derek Li (attribution supplied by the Joe Team). \emph{The Joeriodic Table of Joelements}, including interface and structured element dataset. Available at \url{https://github.com/N0TD3R3K/Joelib/tree/main/joelements}. Accessed 2026-11-06.
+
+\bibitem{joekemon}
+Matthew DeRoma (attribution supplied by the Joe Team). \emph{Joekemon regional TSV collections}. Available at \url{https://github.com/N0TD3R3K/Joelib}. Accessed 2026-11-06.
+
+\bibitem{joesii}
+Wayne Xu (attribution supplied by the Joe Team). \emph{JOESII and JOESII art}. Canvas-based ASCII signal presentation. Available at \url{https://github.com/N0TD3R3K/Joelib/tree/main/joesii}. Accessed 2026-11-06.
+
+\bibitem{joelet}
+Emilia Marcucci (attribution supplied by the Joe Team). \emph{Joelet Speech}. Repository PDF and README-linked document. Available at \url{https://github.com/N0TD3R3K/Joelib/blob/main/Joelet\%20Speech.pdf}. Accessed 2026-11-06.
+
+\bibitem{grammar}
+Joe Jin (the central figure himself; attribution supplied by the Joe Team). \emph{Joeglish Grammar}. Linked from the Joelib README. Available through \url{https://github.com/N0TD3R3K/Joelib/blob/main/README.md}. Accessed 2026-11-06.
+
+\bibitem{joetsby}
+Derek Li (attribution supplied by the Joe Team). \emph{The Great Joetsby}, linked from the Joelib README. Available through \url{https://github.com/N0TD3R3K/Joelib/blob/main/README.md}. Accessed 2026-11-06.
+
+\bibitem{contributing}
+N0TD3R3K/Joelib contributors. \emph{Contributing Guidelines}. Statement inviting further Joe-universe studies and documents. Available at \url{https://github.com/N0TD3R3K/Joelib/blob/main/CONTRIBUTING.md}. Accessed 2026-11-06.
+\end{thebibliography}
+
+\end{document}

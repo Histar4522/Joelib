@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="JoeLang is an object-facing programming console from the Joe universe." />
+    <meta name="theme-color" content="#0b1220" />
+    <title>JoeLang — Projection Console</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Skip to the console</a>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#home" aria-label="JoeLang home">
+          <span class="brand-mark" aria-hidden="true">J<span>+</span></span>
+          <span class="brand-name">JOE<span>LANG</span></span>
+          <span class="brand-divider" aria-hidden="true"></span>
+          <span class="brand-subtitle">PROJECTION CONSOLE</span>
+        </a>
+        <nav class="main-nav" aria-label="Primary navigation">
+          <a href="#workspace">Console</a>
+          <a href="#manual">Manual</a>
+          <a href="#library">Joelements</a>
+          <a href="#archive">Archive</a>
+        </nav>
+        <div class="top-status"><span class="pulse" aria-hidden="true"></span> PROJECTION ENGINE v0.9</div>
+      </header>
+
+      <main id="home">
+        <section class="hero-grid" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <p class="eyebrow">FIELD CONSOLE / OBJECT-FACING COMPUTATION</p>
+            <h1 id="hero-title">Write programs that <em>face the Joe.</em></h1>
+            <p class="hero-lede">JoeLang is a small, inspectable language where every program begins with a thing: a <strong>Joebject</strong>, its state, and the messages it can receive.</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#workspace">Open the console <span aria-hidden="true">→</span></a>
+              <a class="button button-quiet" href="#manual">Read the field manual</a>
+            </div>
+            <div class="signal-row" aria-label="JoeLang design principles">
+              <span><b>01</b> Objects first</span>
+              <span><b>02</b> Visible projection</span>
+              <span><b>03</b> No mystery globals</span>
+            </div>
+          </div>
+          <div class="hero-display" aria-label="JoeLang system diagram">
+            <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="orbit orbit-c"></div>
+            <div class="hero-card hero-card-source"><span>AUTHORED</span><code>joebject Lantern</code></div>
+            <div class="projection-core"><span class="core-ring"></span><strong>J</strong><small>PROJECT</small></div>
+            <div class="hero-card hero-card-host"><span>HOST</span><code>class Lantern</code></div>
+            <p class="diagram-caption"><span class="online-dot"></span> Stable execution. Joe-facing source.</p>
+          </div>
+        </section>
+
+        <section id="workspace" class="workspace-section" aria-labelledby="workspace-title">
+          <div class="section-heading workspace-heading">
+            <div>
+              <p class="eyebrow">01 / LIVE PROJECTION LAB</p>
+              <h2 id="workspace-title">The console<span>.</span></h2>
+            </div>
+            <p>Author a Joebject. Project it to JavaScript. Inspect what it remembers. The starter programs below are designed for the current beta grammar.</p>
+          </div>
+
+          <div class="ide-frame">
+            <div class="ide-toolbar">
+              <div class="file-tab"><span class="file-dot"></span> field-notes.joe <span class="close-tab" aria-hidden="true">×</span></div>
+              <div class="toolbar-actions">
+                <label class="starter-picker">Starter
+                  <select id="starter-select" aria-label="Choose a starter program">
+                    <option value="greeter">Greeter</option>
+                    <option value="lantern">Lantern</option>
+                    <option value="fieldlog">Field log</option>
+                    <option value="scoreboard">Scoreboard</option>
+                  </select>
+                </label>
+                <button id="format-button" class="tool-button" type="button">Format</button>
+                <button id="run-button" class="run-button" type="button"><span aria-hidden="true">▶</span> Project &amp; Run</button>
+              </div>
+            </div>
+
+            <div class="editor-grid">
+              <section class="editor-panel source-panel" aria-labelledby="source-title">
+                <header class="panel-title"><span class="panel-number">01</span><h3 id="source-title">Joe source</h3><span class="language-pill">.joe</span></header>
+                <div class="editor-wrap">
+                  <div id="line-numbers" class="line-numbers" aria-hidden="true"></div>
+                  <textarea id="source-editor" spellcheck="false" aria-label="JoeLang source editor" aria-autocomplete="list" aria-controls="autocomplete-menu" aria-expanded="false"></textarea>
+                  <div id="autocomplete-menu" class="autocomplete-menu" role="listbox" aria-label="JoeLang keyword suggestions" hidden></div>
+                </div>
+                <footer class="panel-footer"><span id="source-stat">0 lines</span><span>UTF-8 / JoeLang 0.9</span></footer>
+              </section>
+
+              <section class="editor-panel projection-panel" aria-labelledby="projection-title">
+                <header class="panel-title"><span class="panel-number">02</span><h3 id="projection-title">JavaScript projection</h3><span class="projection-pill">inspectable</span></header>
+                <pre id="projection-output" class="code-output" aria-live="polite"></pre>
+                <footer class="panel-footer"><span id="projection-stat">Waiting for projection</span><span>host: browser JS</span></footer>
+              </section>
+            </div>
+
+            <div class="result-grid">
+              <section class="console-panel" aria-labelledby="console-title">
+                <header class="panel-title"><span class="panel-number">03</span><h3 id="console-title">Console</h3><button id="clear-button" class="text-button" type="button">Clear</button></header>
+                <div id="console-output" class="console-output" role="log" aria-live="polite"><p class="console-hint">Run a starter program to see its messages here.</p></div>
+              </section>
+              <aside class="inspector-panel" aria-labelledby="inspector-title">
+                <header class="panel-title"><span class="panel-number">04</span><h3 id="inspector-title">Joebject inspector</h3></header>
+                <div id="inspector-output" class="inspector-output"><p class="empty-inspector">No projected Joebjects yet.</p></div>
+              </aside>
+            </div>
+            <div id="run-status" class="run-status" data-state="ready"><span class="status-light"></span><span>Ready — choose a starter or write your own source.</span></div>
+          </div>
+        </section>
+
+        <section id="manual" class="manual-section" aria-labelledby="manual-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">02 / THE FIELD MANUAL</p>
+              <h2 id="manual-title">A method to the Joe<span>.</span></h2>
+            </div>
+            <p>JoeLang favors a readable question over a clever shortcut: which object receives this message, and what should it remember afterward?</p>
+          </div>
+          <div class="manual-layout">
+            <article class="manual-feature">
+              <span class="manual-index">01</span>
+              <h3>Name the thing.</h3>
+              <p>Begin with <code>joebject</code>. A Joebject owns its state and explains the role it plays in the program.</p>
+              <div class="manual-code"><span>joebject</span> Lantern { ... }</div>
+            </article>
+            <article class="manual-feature">
+              <span class="manual-index">02</span>
+              <h3>Give it state.</h3>
+              <p>Use <code>has</code> for values that belong to the object. State stays close to the behavior that changes it.</p>
+              <div class="manual-code"><span>has</span> charge = 3</div>
+            </article>
+            <article class="manual-feature">
+              <span class="manual-index">03</span>
+              <h3>Send a message.</h3>
+              <p>Use a dot to ask an instance to act. The receiver is visible, so changes never come from nowhere.</p>
+              <div class="manual-code">lantern.<span>use_one_charge</span>()</div>
+            </article>
+          </div>
+
+          <div class="keyword-reference" aria-label="JoeLang keyword reference">
+            <div class="keyword-intro"><p class="eyebrow">CORE KEYWORDS</p><h3>Small vocabulary.<br>Clear intentions.</h3></div>
+            <button class="keyword-card" type="button" data-insert="joebject Name {\n  has value = 0\n}\n"><b>joebject</b><span>Declare the thing.</span></button>
+            <button class="keyword-card" type="button" data-insert="has value = 0\n"><b>has</b><span>Remember a value.</span></button>
+            <button class="keyword-card" type="button" data-insert="does action() {\n  show \"Hello\"\n}\n"><b>does</b><span>Define behavior.</span></button>
+            <button class="keyword-card" type="button" data-insert="when ready {\n  show \"Ready\"\n} otherwise {\n  show \"Waiting\"\n}\n"><b>when</b><span>Choose a path.</span></button>
+            <button class="keyword-card" type="button" data-insert="show \"A visible message\"\n"><b>show</b><span>Write to console.</span></button>
+            <button class="keyword-card" type="button" data-insert="give value\n"><b>give</b><span>Return a value.</span></button>
+          </div>
+        </section>
+
+        <section id="library" class="library-section" aria-labelledby="library-title">
+          <div class="section-heading library-heading">
+            <div>
+              <p class="eyebrow">03 / JOELEMENT STANDARD LIBRARY</p>
+              <h2 id="library-title">Stable capability.<br><em>Joe-facing name.</em></h2>
+            </div>
+            <p>Each Joelement keeps a visible host purpose. The name changes; the system remains inspectable.</p>
+          </div>
+          <div class="library-grid">
+            <article class="element-card element-blue"><span class="atomic">06</span><span class="symbol">Cb</span><h3>Joerbon</h3><p>Text, labels, joining, and display-safe formatting.</p><footer>HOST / strings</footer></article>
+            <article class="element-card element-green"><span class="atomic">08</span><span class="symbol">Ox</span><h3>Joexyjin</h3><p>Timers, scheduled messages, and event signals.</p><footer>HOST / timers</footer></article>
+            <article class="element-card element-amber"><span class="atomic">17</span><span class="symbol">Cr</span><h3>Joerine</h3><p>Approved local records and serialization.</p><footer>HOST / storage</footer></article>
+            <article class="element-card element-rose"><span class="atomic">28</span><span class="symbol">Nk</span><h3>Joekel</h3><p>Numbers, bounds, and small validation tools.</p><footer>HOST / math</footer></article>
+          </div>
+        </section>
+
+        <section id="archive" class="archive-band" aria-labelledby="archive-title">
+          <div>
+            <p class="eyebrow">ARCHIVE NOTE / SOURCE LINEAGE</p>
+            <h2 id="archive-title">The language is one more recovered field.</h2>
+          </div>
+          <div class="archive-copy">
+            <p>JoeLang follows the archive’s durable pattern: a familiar foundation remains legible while a Joe-facing layer changes how it is named, organized, and explored.</p>
+            <a href="https://github.com/N0TD3R3K/Joelib" target="_blank" rel="noreferrer">Visit the Joelib archive <span aria-hidden="true">↗</span></a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>JOELANG / PROJECTION CONSOLE / v0.9</span>
+        <span>Built for the Joe Team · Source vocabulary informed by Joelib</span>
+      </footer>
+    </div>
+    <script src="https://joelang-language-pack-20261107.nurturingpeony1.chatgpt.site/joelang-core.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

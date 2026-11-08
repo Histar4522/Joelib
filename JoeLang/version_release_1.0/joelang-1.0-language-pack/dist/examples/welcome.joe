@@ -1,0 +1,13 @@
+jinport "std/joemath" as math
+
+joebject Welcome {
+  has strjin greeting = "Welcome to JoeLang 1.0"
+
+  does announce(strjin name) {
+    show greeting + ", " + name + "!"
+    give math.max(1, 3)
+  }
+}
+
+newjoe Welcome as app
+show app.announce("Joe")

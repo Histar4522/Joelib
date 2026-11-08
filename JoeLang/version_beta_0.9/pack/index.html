@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>JoeLang Language Pack</title>
+    <style>
+      :root { color-scheme: dark; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background:#10151f; color:#e4ebf7; }
+      body { margin:0; min-height:100vh; display:grid; place-items:center; background:radial-gradient(circle at top left,#1d3453,transparent 40%),#10151f; }
+      main { width:min(780px,calc(100% - 48px)); padding:64px 0; }
+      .eyebrow { color:#7dd3fc; letter-spacing:.12em; font-size:.75rem; }
+      h1 { font-size:clamp(2rem,7vw,4.4rem); margin:.2rem 0; letter-spacing:-.07em; }
+      .card { padding:24px; margin:20px 0; border:1px solid #2c3f5c; border-radius:16px; background:#121b29cc; box-shadow:0 24px 80px #0005; }
+      code, pre { background:#08101c; color:#c4f1d2; border-radius:9px; } code { padding:2px 5px; } pre { overflow:auto; padding:18px; line-height:1.55; }
+      a { color:#8bddff; } .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; } .grid a { padding:14px; border:1px solid #355479; border-radius:10px; text-decoration:none; background:#17263b; } small { color:#a8b6ca; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">JOELANG / PORTABLE LANGUAGE ENGINE</p>
+      <h1>Language Pack</h1>
+      <p>JoeLang beta <strong>0.9.0</strong> · Stable browser API <strong>1</strong></p>
+      <section class="card">
+        <h2>Use the engine</h2>
+        <pre>&lt;script src="https://joelang-language-pack-20261107.nurturingpeony1.chatgpt.site/joelang-core.js"&gt;&lt;/script&gt;
+
+const result = JoeLangCore.run(source, { onOutput: console.log });</pre>
+        <p>One core supplies keyword data, diagnostics, formatting, JavaScript projection, and execution to any compatible IDE.</p>
+      </section>
+      <section class="grid">
+        <a href="joelang-core.js" download><strong>Core script</strong><br><small>joelang-core.js</small></a>
+        <a href="joelang-language.json" download><strong>Language manifest</strong><br><small>joelang-language.json</small></a>
+        <a href="https://github.com/N0TD3R3K/Joelib" target="_blank" rel="noreferrer"><strong>Joelib archive</strong><br><small>source lineage ↗</small></a>
+      </section>
+    </main>
+  </body>
+</html>

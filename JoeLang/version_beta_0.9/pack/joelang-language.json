@@ -1,0 +1,26 @@
+{
+  "name": "JoeLang",
+  "version": "0.9.0",
+  "apiVersion": 1,
+  "entry": "joelang-core.js",
+  "moduleFormat": "browser-global",
+  "global": "JoeLangCore",
+  "featureFlags": {
+    "parameters": true,
+    "input": false,
+    "countLoop": false,
+    "dataTypes": false,
+    "collections": false
+  },
+  "keywords": [
+    "joebject", "has", "does", "newjoe", "as", "show", "give", "when",
+    "otherwise", "each", "in", "ask", "from", "truejoe", "falsejoe", "nonejoe"
+  ],
+  "uiContract": {
+    "minimumApiVersion": 1,
+    "autocomplete": "JoeLangCore.completions()",
+    "diagnostics": "JoeLangCore.analyze(source).diagnostics",
+    "projection": "JoeLangCore.compile(source, { fileName }).code",
+    "runtime": "JoeLangCore.run(source, { onOutput })"
+  }
+}

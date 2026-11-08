@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#171a21">
+    <title>JoeLang Studio 1.0</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="studio" data-theme="dark">
+      <header class="titlebar">
+        <div class="brand"><span class="brand-mark">J</span><span>JoeLang Studio</span><span class="release">1.0</span></div>
+        <nav class="toolbar" aria-label="Studio commands">
+          <button id="run-button" class="primary" type="button" title="Run (Ctrl+Enter)">▶ Run</button>
+          <button id="format-button" type="button" title="Format (Ctrl+Shift+F)">Format</button>
+          <span class="tool-divider"></span>
+          <button id="open-workspace-button" type="button">Open workspace</button>
+          <button id="save-workspace-button" type="button">Save workspace</button>
+          <button id="import-file-button" type="button">Import .joe</button>
+          <button id="download-file-button" type="button">Download file</button>
+          <a class="toolbar-link" href="downloads/joelang-language-pack-1.0.0.zip" download>Language pack ↓</a>
+        </nav>
+        <div class="window-tools">
+          <button id="theme-button" type="button" title="Toggle theme">☾</button>
+          <button id="right-sidebar-button" type="button" title="Hide or show inspector">▣</button>
+        </div>
+      </header>
+
+      <div class="workbench">
+        <nav class="activity-bar" aria-label="Primary navigation">
+          <button class="activity active" data-view="explorer" type="button" title="Explorer">▱</button>
+          <button class="activity" data-view="docs" type="button" title="Language reference">?</button>
+        </nav>
+
+        <aside id="explorer-panel" class="explorer-panel">
+          <div class="panel-heading"><span>EXPLORER</span><div class="heading-actions"><button id="new-item-button" type="button" title="New item">＋</button><button id="collapse-tree-button" type="button" title="Collapse folders">⌄</button></div></div>
+          <div id="workspace-label" class="workspace-label">JOE WORKSPACE</div>
+          <div id="file-tree" class="file-tree" role="tree" aria-label="Workspace files"></div>
+          <div class="explorer-foot">Right-click an item for file actions.</div>
+        </aside>
+
+        <main class="editor-shell">
+          <div id="editor-tabs" class="editor-tabs" role="tablist"></div>
+          <div class="editor-topline"><span id="crumb-path">src › main.joe</span><span id="compile-state">Ready</span></div>
+          <div class="editor-wrap">
+            <pre id="line-numbers" class="line-numbers" aria-hidden="true">1</pre>
+            <pre id="syntax-highlight" class="syntax-highlight" aria-hidden="true"><code></code></pre>
+            <textarea id="code-editor" class="code-editor" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="JoeLang code editor"></textarea>
+            <div id="completion-menu" class="completion-menu" hidden role="listbox" aria-label="JoeLang completions"></div>
+          </div>
+          <section class="problems-panel" aria-label="Problems">
+            <div class="problems-heading"><span>PROBLEMS <b id="problem-count">0</b></span><button id="hide-problems-button" type="button" title="Hide problems">×</button></div>
+            <div id="problems-list" class="problems-list"><span class="quiet">No problems in this file.</span></div>
+          </section>
+          <footer class="statusbar"><span id="runtime-status">Ready</span><span id="cursor-status">Ln 1, Col 1</span><span>JoeLang 1.0</span><span id="active-file-status">main.joe</span></footer>
+        </main>
+
+        <aside id="inspector" class="inspector">
+          <div class="panel-heading"><span>RUNTIME</span><button id="clear-output-button" type="button" title="Clear runtime panes">Clear</button></div>
+          <section class="runtime-section"><div class="runtime-label">OUTPUT</div><pre id="program-output" class="runtime-output">Run a JoeLang file to see output.</pre></section>
+          <section class="runtime-section object-section"><div class="runtime-label">JOEBJECTS</div><pre id="object-tree" class="object-tree">No Joebjects created.</pre></section>
+          <section class="runtime-section projection-section"><div class="runtime-label">JAVASCRIPT PROJECTION</div><pre id="js-projection" class="js-projection">Compile a file to inspect its projection.</pre></section>
+        </aside>
+      </div>
+
+      <div id="context-menu" class="context-menu" hidden role="menu"></div>
+      <input id="workspace-input" type="file" accept="application/json,.json,.joeworkspace.json" hidden>
+      <input id="source-input" type="file" accept=".joe,text/plain" multiple hidden>
+    </div>
+
+    <dialog id="item-dialog" class="dialog">
+      <form id="item-form" method="dialog">
+        <p class="dialog-kicker">WORKSPACE ITEM</p><h2 id="item-dialog-title">New JoeLang file</h2>
+        <label>Kind<select id="item-kind"><option value="file">JoeLang file</option><option value="folder">Folder</option><option value="package">Package</option></select></label>
+        <label>Name<input id="item-name" maxlength="80" placeholder="main.joe" required></label>
+        <label id="item-parent-label">Location<select id="item-parent"></select></label>
+        <label id="template-label" class="check-row"><input id="template-choice" type="checkbox" checked> Start file from a 1.0 template</label>
+        <p id="item-note" class="dialog-note"></p>
+        <div class="dialog-actions"><button value="cancel" type="button" data-close="item-dialog">Cancel</button><button class="primary" value="default" type="submit">Create</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="rename-dialog" class="dialog small-dialog">
+      <form id="rename-form" method="dialog"><p class="dialog-kicker">RENAME ITEM</p><h2 id="rename-title">Rename</h2><label>New name<input id="rename-name" maxlength="80" required></label><p id="rename-note" class="dialog-note"></p><div class="dialog-actions"><button type="button" data-close="rename-dialog">Cancel</button><button class="primary" type="submit">Rename</button></div></form>
+    </dialog>
+
+    <dialog id="delete-dialog" class="dialog small-dialog danger-dialog">
+      <form id="delete-form" method="dialog"><p class="dialog-kicker">CONFIRM DELETION</p><h2 id="delete-title">Delete item?</h2><p id="delete-warning" class="warning-text"></p><label class="check-row"><input id="skip-delete-warning" type="checkbox"> Don’t show this warning again</label><div class="dialog-actions"><button type="button" data-close="delete-dialog">Cancel</button><button class="danger" type="submit">Delete permanently</button></div></form>
+    </dialog>
+
+    <dialog id="input-dialog" class="dialog small-dialog input-dialog">
+      <form id="input-form" method="dialog"><p class="dialog-kicker">PROGRAM INPUT</p><h2 id="input-prompt">Input requested</h2><p id="input-type" class="dialog-note"></p><label>Value<input id="input-value" autocomplete="off"></label><p id="input-error" class="input-error"></p><div class="dialog-actions"><button id="cancel-input-button" type="button">Cancel run</button><button class="primary" type="submit">Send input</button></div></form>
+    </dialog>
+
+    <dialog id="docs-dialog" class="dialog docs-dialog">
+      <form method="dialog"><div class="docs-head"><div><p class="dialog-kicker">LANGUAGE REFERENCE</p><h2>JoeLang 1.0</h2></div><button type="button" data-close="docs-dialog">×</button></div>
+        <div class="docs-copy"><p>JoeLang is an object-facing language. The Studio runs the included 1.0 pack, so this short reference always describes the exact editor runtime.</p><h3>Core shape</h3><pre>joebject Counter {
+  has jint value = 0
+  does add(jint amount) { value = value + amount }
+}
+newjoe Counter as counter
+show counter.add(1)</pre><h3>Keywords</h3><p><code>joebject has does newjoe as show give when otherwise joeach jin jinport input</code></p><h3>Types and packages</h3><p><code>jint joeble joelean jong strjin</code>. Use <code>jinport "std/joeraylist" as lists</code> for typed dynamic lists, <code>std/joemath</code> for deterministic math, <code>std/joetime</code> for clock values, and <code>std/joetext</code> for text utilities.</p><p>The complete language-pack bundle is available through <strong>Language pack ↓</strong> in the toolbar.</p></div>
+      </form>
+    </dialog>
+
+    <script src="pack/joelang-core.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

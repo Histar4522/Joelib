@@ -1,0 +1,344 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\definecolor{joeBlue}{HTML}{1D4E89}
+\definecolor{joeGreen}{HTML}{2F6F4E}
+\definecolor{joeGray}{HTML}{F4F6F8}
+\hypersetup{colorlinks=true,linkcolor=joeBlue,urlcolor=joeBlue,pdftitle={JoeLang 1.0 User Manual}}
+\lstdefinestyle{joelang}{basicstyle=\ttfamily\small,backgroundcolor=\color{joeGray},frame=single,rulecolor=\color{black!20},breaklines=true,columns=fullflexible,showstringspaces=false,commentstyle=\color{joeGreen},keywordstyle=\color{joeBlue}\bfseries,morekeywords={joebject,has,does,newjoe,as,show,give,when,otherwise,joeach,jin,jinport,input,jint,joeble,joelean,jong,strjin,type,joet,joef,gunmu,JAND,JOR,JOT,self}}
+\lstset{style=joelang}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{JoeLang 1.0}
+\rhead{User Manual}
+\cfoot{\thepage}
+\setlength{\headheight}{14pt}
+\newcommand{\keyword}[1]{\texttt{#1}}
+\begin{document}
+\begin{titlepage}
+\centering
+\vspace*{1.6in}
+{\Huge\bfseries JoeLang 1.0\par}
+\vspace{0.25in}
+{\Large User Manual\par}
+\vspace{0.45in}
+{\large A typed, object-facing programming language\par}
+\vfill
+\begin{tabular}{rl}
+Language version: & 1.0 \\
+Document type: & User reference \\
+\end{tabular}
+\vfill
+{\large \today\par}
+\end{titlepage}
+\tableofcontents
+\newpage
+\section{Introduction}
+JoeLang is a typed, object-facing programming language. A program may be a short top-level script, or it may define \emph{Joebjects}: named types that own state and receive messages through behaviors. Brace-delimited blocks, explicit types, and zero-based indexing are intended to feel familiar to Java and C++ programmers.
+
+JoeLang is case-sensitive. The spellings \keyword{joet}, \keyword{JOT}, and \keyword{jint} are distinct. A newline normally ends a statement; a semicolon may also end one. Indentation improves readability but does not change meaning.
+
+\subsection{First program}
+\begin{lstlisting}
+show "Hello, Joe!"
+\end{lstlisting}
+The \keyword{show} statement writes a value to the program output. A Joebject is not required for a short program.
+
+\subsection{Top-level declarations}
+\begin{lstlisting}
+has strjin greeting = "Welcome"
+has jint launch_count = 0
+show greeting
+\end{lstlisting}
+At top level, \keyword{has} creates a program variable.
+
+\section{Keywords and names}
+Names begin with a letter or underscore and may contain letters, digits, and underscores. A name may not be a reserved word.
+
+\begin{longtable}{p{0.32\textwidth}p{0.58\textwidth}}
+\toprule
+\textbf{Keywords} & \textbf{Purpose} \\
+\midrule
+\endhead
+\keyword{joebject}, \keyword{does}, \keyword{newjoe}, \keyword{self} & Object declaration, behavior declaration, construction, and current receiver \\
+\keyword{has}, \keyword{give}, \keyword{as} & Declaration, behavior result, and alias syntax \\
+\keyword{show}, \keyword{input} & Output and runtime input \\
+\keyword{when}, \keyword{otherwise}, \keyword{joeach}, \keyword{jin} & Conditions and loops \\
+\keyword{jinport} & Package import \\
+\keyword{jint}, \keyword{joeble}, \keyword{joelean}, \keyword{jong}, \keyword{strjin}, \keyword{type} & Types and conversions \\
+\keyword{joet}, \keyword{joef}, \keyword{gunmu}, \keyword{JAND}, \keyword{JOR}, \keyword{JOT} & Values and logical operators \\
+\bottomrule
+\end{longtable}
+
+The earlier spellings \keyword{each}, \keyword{in}, \keyword{ask}, \keyword{from}, \keyword{truejoe}, \keyword{falsejoe}, and \keyword{nonejoe} are not JoeLang 1.0 keywords.
+
+\section{Types, literals, and conversion}
+Every declaration and behavior parameter has a type.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Type & Meaning & Example \\
+\midrule
+\keyword{jint} & signed 32-bit whole number & \keyword{42} \\
+\keyword{joeble} & double-precision decimal number & \keyword{3.14} \\
+\keyword{joelean} & logical value & \keyword{joet} \\
+\keyword{jong} & signed 64-bit whole number & \keyword{42J} \\
+\keyword{strjin} & immutable text & \keyword{"Joe"} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}
+has jint score = 92
+has joeble average = 91.5
+has joelean passed = joet
+has jong visitors = 9000000000J
+has strjin name = "JoeJin"
+\end{lstlisting}
+
+Assignment requires the same type. JoeLang does not silently narrow or widen a value during assignment. Use \keyword{type} for an explicit conversion.
+
+\begin{lstlisting}
+has jint whole = type.jint(2.9)
+has joeble decimal = type.joeble(whole)
+has jong long_total = type.jong(whole)
+\end{lstlisting}
+
+\keyword{type.jint} truncates toward zero. Invalid conversion, non-finite decimal conversion, and numeric overflow report a source-mapped runtime error.
+
+\subsection{Nullable references}
+\keyword{gunmu} represents intentional absence. It is valid only for a nullable reference type, written with \keyword{?}.
+\begin{lstlisting}
+has strjin? nickname = gunmu
+nickname = "Jin"
+\end{lstlisting}
+Numeric values and \keyword{joelean} values are not nullable.
+
+\section{Expressions}
+JoeLang uses familiar precedence: postfix operations, unary operations, multiplication and division, addition and subtraction, comparisons, equality, \keyword{JAND}, then \keyword{JOR}. Parentheses make order explicit.
+
+\begin{lstlisting}
+has jint subtotal = 8 + 4 * 2
+has jint quotient = 7 / 2
+has joeble exact = 7 / 2.0
+has jint remainder = 7 % 2
+\end{lstlisting}
+
+Integral division truncates toward zero. \keyword{jint} with \keyword{jint} produces \keyword{jint}; an expression containing \keyword{jong} produces \keyword{jong} unless it also contains \keyword{joeble}; any expression containing \keyword{joeble} produces \keyword{joeble}. Integral overflow is an error.
+
+\subsection{Text and logic}
+\begin{lstlisting}
+has jint score = 92
+show "Score: " + score
+has joelean eligible = score >= 60
+has joelean active = joet JAND JOT joef
+\end{lstlisting}
+Adding a \keyword{strjin} to a scalar produces text. \keyword{JAND} and \keyword{JOR} short-circuit. Equality compares scalars by value and arrays by ordered element value.
+
+\section{Variables and scope}
+\keyword{has} declares a mutable value. In a Joebject body, it declares state. In a behavior or nested brace block, it declares a local value.
+
+\begin{lstlisting}
+joebject Meter {
+  has jint value = 0
+
+  does add(jint amount) {
+    has jint next = value + amount
+    value = next
+    give value
+  }
+}
+\end{lstlisting}
+
+Inside a behavior, names resolve in this order: local block values, behavior parameters, owned state, then imported package aliases. A behavior does not silently capture a top-level program variable; pass that value as a parameter. A declaration may not shadow an active local, parameter, or state name.
+
+\section{Conditions and loops}
+\subsection{Conditions}
+\begin{lstlisting}
+when score >= 60 {
+  show "Pass"
+} otherwise {
+  show "Try again"
+}
+\end{lstlisting}
+The condition of \keyword{when} must be a \keyword{joelean}.
+
+\subsection{Counting loops}
+\begin{lstlisting}
+joeach (jint i = 0, i < 5, i++) {
+  show i
+}
+\end{lstlisting}
+The counter exists only inside the loop. \keyword{++} increments a \keyword{jint} or \keyword{jong}; overflow is an error.
+
+\subsection{Collection loops}
+\begin{lstlisting}
+has strjin names[] = ["Joe", "Jin", "Eoj"]
+joeach name jin names {
+  show name
+}
+\end{lstlisting}
+Elements are visited in increasing index order. The loop variable exists only in the loop body.
+
+\section{Fixed Joerays}
+A fixed Joeray is a typed array with an immutable length. Indexes begin at zero.
+\begin{lstlisting}
+has jint scores[] = [90, 84, 97]
+has jint blank[5]
+show scores[0]
+scores[1] = 88
+show scores.length
+\end{lstlisting}
+
+The only valid index range is \keyword{0 <= index < array.length}. Negative indexes and indexes outside this range are errors. Array length is read-only. A \keyword{jint} array created with \keyword{[5]} contains five zero values; a \keyword{strjin} array contains empty strings; a \keyword{joelean} array contains \keyword{joef}. Assignment overwrites an element but never removes it or changes array length.
+
+\section{Joebjects and behaviors}
+\begin{lstlisting}
+joebject Lantern {
+  has jint charge = 3
+  has strjin label = "Blue lantern"
+
+  does glow() {
+    when charge > 0 {
+      show label + " is glowing."
+      charge = charge - 1
+    } otherwise {
+      show "The lantern needs charge."
+    }
+    give charge
+  }
+}
+
+newjoe Lantern as lantern
+show lantern.glow()
+\end{lstlisting}
+
+\keyword{newjoe} creates an instance and accepts no arguments in 1.0. Initialize state in its \keyword{has} declaration. A behavior may take typed parameters and use \keyword{give} to return a result.
+
+\begin{lstlisting}
+joebject Scoreboard {
+  has jint score = 0
+  does add(jint points) {
+    score = score + points
+    give score
+  }
+}
+newjoe Scoreboard as board
+show board.add(10)
+\end{lstlisting}
+
+Use \keyword{self} to call another behavior on the current Joebject.
+\begin{lstlisting}
+does add_twice(jint amount) {
+  self.add(amount)
+  give self.add(amount)
+}
+\end{lstlisting}
+
+\section{Input}
+\keyword{input} is an expression evaluated only while a program runs.
+\begin{lstlisting}
+has strjin name = input("What is your name?")
+has jint age = input("What is your age?")
+show "Hello, " + name
+\end{lstlisting}
+
+When runtime reaches \keyword{input}, it pauses and issues an input request. The IDE presents the prompt, accepts text after Enter, validates the text against the destination type, assigns the result, then resumes. Invalid numeric or logical input remains active and asks again. Cancellation yields \keyword{gunmu} only for a nullable destination; otherwise it produces a required-input cancellation error.
+
+\section{Packages}
+Packages are imported explicitly. The path is a quoted string and an alias is optional.
+\begin{lstlisting}
+jinport "std/joemath" as math
+show math.sqrt(81.0)
+
+jinport "std/joetime"
+show joetime.now()
+\end{lstlisting}
+
+When no alias is supplied, the final path segment becomes the package name if it is unique. Missing, incompatible, or unauthorized packages are compile-time errors. Package types are qualified by their alias.
+
+\begin{lstlisting}
+jinport "std/joeraylist" as lists
+has lists.JoerayList<jint> scores = lists.create<jint>()
+\end{lstlisting}
+
+\section{Standard packages}
+\subsection{JoeMath: \keyword{std/joemath}}
+JoeMath is a pure numeric package.
+\begin{lstlisting}
+jinport "std/joemath" as math
+show math.abs(-12)
+show math.pow(2.0, 8.0)
+show math.clamp(120, 0, 100)
+\end{lstlisting}
+Its primary functions are \keyword{abs}, \keyword{min}, \keyword{max}, \keyword{floor}, \keyword{ceil}, \keyword{round}, \keyword{sqrt}, \keyword{pow}, \keyword{clamp}, and seeded \keyword{random}.
+
+\subsection{JoerayList: \keyword{std/joeraylist}}
+JoerayList is a dynamic, typed list comparable to Java's ArrayList.
+\begin{lstlisting}
+jinport "std/joeraylist" as lists
+has lists.JoerayList<strjin> guests = lists.create<strjin>()
+guests.add("Joe")
+guests.add("Jin")
+show guests.get(0)
+guests.set(1, "Eoj")
+guests.removeAt(0)
+show guests.size()
+\end{lstlisting}
+The API includes \keyword{add}, \keyword{get}, \keyword{set}, \keyword{removeAt}, \keyword{contains}, \keyword{clear}, \keyword{size}, and \keyword{toArray}. All indexes are zero-based and bounds-checked.
+
+\subsection{JoeTime: \keyword{std/joetime}}
+JoeTime exposes immutable time values.
+\begin{lstlisting}
+jinport "std/joetime"
+has joetime.TimePoint now = joetime.now()
+has joetime.Duration wait = joetime.duration(5000)
+has joetime.TimePoint later = joetime.add(now, wait)
+show joetime.format(later, "ISO")
+\end{lstlisting}
+The main JoeTime functions are \keyword{now}, \keyword{today}, \keyword{parse}, \keyword{duration}, \keyword{between}, \keyword{add}, and \keyword{format}. Times use ISO-8601 and UTC by default.
+
+\subsection{JoeText: \keyword{std/joetext}}
+JoeText supplies immutable string utilities.
+\begin{lstlisting}
+jinport "std/joetext" as text
+has strjin title = text.trim("  JoeLang  ")
+show text.toUpper(title)
+show text.substring(title, 0, 3)
+\end{lstlisting}
+JoeText provides \keyword{length}, \keyword{charAt}, \keyword{substring}, \keyword{contains}, \keyword{indexOf}, \keyword{toUpper}, \keyword{toLower}, \keyword{trim}, and \keyword{split}.
+
+\section{Diagnostics}
+JoeLang reports errors before execution whenever possible. Diagnostics have a stable code, a message, and a source location. A program with an error-level compilation diagnostic does not run. Runtime errors identify their source location and the active Joebject behavior call stack.
+
+\section{Quick reference}
+\begin{longtable}{p{0.42\textwidth}p{0.48\textwidth}}
+\toprule
+\textbf{Form} & \textbf{Meaning} \\
+\midrule
+\endhead
+\keyword{show expression} & Write output. \\
+\keyword{has Type name = expression} & Declare a typed mutable value. \\
+\keyword{when condition \{...\}} & Run a conditional block. \\
+\keyword{joeach (init, test, update) \{...\}} & Counting loop. \\
+\keyword{joeach item jin collection \{...\}} & Collection loop. \\
+\keyword{Type array[] = [values]} & Fixed typed Joeray. \\
+\keyword{joebject Name \{...\}} & Joebject type declaration. \\
+\keyword{does name(Type value) \{...\}} & Behavior declaration. \\
+\keyword{newjoe Name as instance} & Create a Joebject instance. \\
+\keyword{give expression} & Return from a behavior. \\
+\keyword{input("prompt")} & Request a runtime value. \\
+\keyword{jinport "path" as alias} & Activate a package. \\
+\bottomrule
+\end{longtable}
+\end{document}

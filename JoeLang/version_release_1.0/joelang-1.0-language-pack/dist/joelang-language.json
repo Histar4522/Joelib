@@ -1,0 +1,32 @@
+{
+  "name": "JoeLang",
+  "version": "1.0.0",
+  "apiVersion": 2,
+  "entry": "joelang-core.js",
+  "moduleFormat": "browser-global",
+  "global": "JoeLangCore",
+  "featureFlags": {
+    "typedDeclarations": true,
+    "typedParameters": true,
+    "input": true,
+    "countLoop": true,
+    "fixedArrays": true,
+    "dynamicLists": true,
+    "packages": true,
+    "sourceMappedDiagnostics": true
+  },
+  "uiContract": {
+    "minimumApiVersion": 2,
+    "autocomplete": "JoeLangCore.completions(prefix)",
+    "diagnostics": "JoeLangCore.analyze(source).diagnostics",
+    "formatter": "JoeLangCore.format(source)",
+    "projection": "JoeLangCore.compile(source, { fileName }).code",
+    "runtime": "await JoeLangCore.run(source, { onOutput, inputProvider, clock })"
+  },
+  "standardPackages": [
+    "std/joemath@1.0",
+    "std/joeraylist@1.0",
+    "std/joetime@1.0",
+    "std/joetext@1.0"
+  ]
+}

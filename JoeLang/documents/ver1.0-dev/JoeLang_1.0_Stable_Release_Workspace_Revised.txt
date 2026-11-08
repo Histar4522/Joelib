@@ -1,0 +1,247 @@
+JoeLang Stable Release 1.0 Workspace
+Revised feature and readiness specification
+
+Purpose
+-------
+JoeLang 1.0 is a stable, object-facing language release. Its language pack is
+the authority for parsing, diagnostics, formatting, projection, execution,
+keyword metadata, templates, package resolution, and compatibility metadata.
+Studio and Console remain compatible consumers of that pack.
+
+Release rule
+------------
+Before any new feature is marked stable, the lexer/parser, static analysis,
+runtime, and JavaScript projection must agree on its meaning. Every supported
+manual example must have a passing automated test. A feature must not appear in
+autocomplete or published documentation until it is implemented end-to-end.
+
+Top-level programs
+------------------
+A Joebject is not required for a program to run. A direct output program is
+valid:
+
+  show "Hello, Joe!"
+
+Top-level `has` declarations are also valid. Inside a Joebject, `has` means
+state owned by that Joebject; at top level, it means a program variable.
+
+Packages
+--------
+The language pack supports packages added after 1.0 without a Studio or Console
+UI release. A package may export Joebjects, functions, constants, and declared
+reference types. Packages may not introduce arbitrary new language grammar.
+
+`jinport` activates a package. The package path is a string so package names are
+unambiguous and can contain `/`:
+
+  jinport "joelanglib/lantern"
+  lantern.do_things()
+
+  jinport "joelanglib/lantern" as lan
+  lan.do_things()
+
+Package requirements:
+
+- The package registry resolves a package name and an explicit package version.
+- A package manifest declares exports, reference types, requested capabilities,
+  and compatibility requirements.
+- Packages have an allowlist of safe host APIs; they do not receive unrestricted
+  browser, network, filesystem, or storage access.
+- A missing, disabled, incompatible, or unauthorized package is a compile-time
+  diagnostic, not an unexplained runtime failure.
+- Package-defined reference types are available only while their package is
+  imported. Qualified names, such as `lan.LanternConfig`, avoid type collisions.
+
+Data types
+----------
+JoeLang 1.0 provides these built-in types:
+
+  jint     whole number
+  joeble   decimal number
+  joelean  logical value
+  jong     long integer
+  strjin   text
+
+Use `has` to declare a typed variable:
+
+  has jint number = 1
+  has joelean status = joet
+  has strjin name = "JoeJin"
+
+`type` is a reserved conversion namespace:
+
+  type.jint(2.0)            // gives 2
+  type.joeble(2)            // gives 2.0
+
+  has jint num1 = 2
+  has joeble num2 = type.joeble(num1)
+
+`jong` uses a `J` suffix to distinguish it from a `jint` literal:
+
+  has jong large_count = 42J
+
+Conversion rules, invalid conversion diagnostics, numeric limits, and overflow
+behavior must be defined and tested before release.
+
+Joerays
+-------
+Joerays contain values of one declared element type.
+
+Create a populated Joeray:
+
+  has jint list[] = [1, 2, 3, 4, 5]
+
+Create a fixed-length jint Joeray:
+
+  has jint empty_list[5]
+
+The fixed-length example initializes every jint element to `0`. A non-numeric
+array type needs its own documented default-value rule; `gunmu` is not silently
+inserted into a non-nullable typed Joeray.
+
+Read, update, and inspect length:
+
+  list[3]                  // gives 4
+  has jint fourth = list[3]
+
+  has jint new_data = 100
+  list[3] = new_data       // list becomes [1, 2, 3, 100, 5]
+
+  list[3] = 0              // overwrites/clears this jint element; it is not deletion
+  list.length              // gives 5
+
+True element removal and length-changing operations are deferred until JoeLang
+defines a dynamic-list API. The 1.0 manual must call `list[3] = 0` replacement,
+not deletion.
+
+Loops
+-----
+JoeLang provides two `joeach` forms.
+
+Counting loop:
+
+  joeach (jint i = 0, i < 10, i++) {
+    show i
+  }
+
+Collection loop:
+
+  has strjin list[] = ["joe", "jin", "eoj", "nij"]
+  joeach item jin list {
+    show item
+  }
+
+`i++` is an increment operator, not a keyword. `jin` is reserved and replaces
+the earlier `in` spelling. Loop-variable scope, counter overflow, and attempts
+to modify a collection during iteration must have documented behavior.
+
+Joeleans and logic
+------------------
+JoeLang uses these values:
+
+  joet     true
+  joef     false
+  gunmu    intentional absence / null
+
+The logical operators are case-sensitive and reserved:
+
+  JAND
+  JOR
+  JOT
+
+Examples:
+
+  joet JAND joef          // joef
+  joet JOR joef           // joet
+  JOT joet                // joef
+  JOT (joet JAND joef)    // joet
+
+  has joelean status1 = joet
+  has joelean status2 = joef
+  has joelean status3 = JOT (status1 JOR status2)
+
+Input
+-----
+`input` is an expression evaluated at runtime, never during compilation. It
+collects a text response, and the declared destination type controls conversion:
+
+  has jint number_from_input = input("What's the number?")
+  has strjin strjin_from_input = input("What's your name?")
+
+When the program reaches `input`, execution pauses, presents the prompt, accepts
+the response after Enter, validates/converts it, assigns the resulting value,
+then resumes execution. Invalid `jint` or `joeble` input reports a conversion
+message and asks again. Cancellation yields `gunmu`.
+
+The existing Studio and Console output panes are display-only. Therefore:
+
+- The language pack provides a native browser-prompt fallback, preserving
+  compatibility for existing UIs without an immediate UI release.
+- A later UI release may provide a dedicated input line or dialog in the runtime
+  panel. That is a presentation improvement, not different language syntax.
+
+Keywords and reserved words
+---------------------------
+The following words are reserved and may not be used as Joebject, variable,
+behavior, parameter, package alias, or type names:
+
+  joebject  has       does      newjoe  as       show      give
+  when      otherwise joeach    jin     jinport  input
+  jint      joeble    joelean   jong    strjin   type
+  joet      joef      gunmu     JAND    JOR      JOT
+
+The previous 0.9 spellings `each`, `in`, `ask`, `from`, `truejoe`, `falsejoe`,
+and `nonejoe` are not 1.0 keywords. A migration diagnostic may suggest their
+1.0 equivalents, but 1.0 source should use the canonical spellings above.
+
+Language-pack compatibility
+----------------------------
+The core exposes a stable API version separately from its semantic JoeLang
+version. Studio, Console, and third-party IDEs load keyword data, diagnostics,
+formatting, projection, execution, templates, and package metadata through that
+API. A compatible language-pack release can update those capabilities without a
+Studio or Console UI release.
+
+Distribution has two modes:
+
+- Hosted update channel: a stable URL can load the current compatible pack.
+- Offline/reproducible distribution: an IDE ships a local, versioned copy of the
+  pack. Releases use immutable version URLs or content hashes.
+
+Stable release gates
+--------------------
+JoeLang 1.0 is ready only after all of the following are complete:
+
+1. A shared lexer, parser, AST, semantic analyzer, interpreter, and JavaScript
+   emitter cover the supported 1.0 grammar.
+2. Compiler diagnostics include stable codes and source line/column spans.
+3. All reserved-word, type, conversion, package, array, loop, and input rules
+   are enforced consistently.
+4. Interpreter results and displayed JavaScript projection are tested for
+   equivalent supported behavior.
+5. Every reference-manual example is an executable regression test.
+6. Package manifests, version resolution, compatibility checks, and capability
+   permissions are implemented before `jinport` is advertised.
+7. The Studio and Console safely render source-controlled names and values.
+8. The release includes repeatable automated tests and a documented verification
+   workflow.
+
+Out of scope unless completed end-to-end
+----------------------------------------
+Records, implicit/self behavior calls, in-behavior Joebject creation, arbitrary
+external package code, expanded dynamic collection operations, persistent
+workspaces, and custom asynchronous input interfaces remain out of scope unless
+their complete semantics, diagnostics, tests, documentation, and UI behavior are
+delivered together.
+
+Companion specifications
+------------------------
+The following documents complete the remaining 1.0 design decisions:
+
+- JoeLang_1.0_Core_Semantics.txt
+- JoeLang_1.0_Input_and_Runtime_Contract.txt
+- JoeLang_1.0_Standard_Packages.txt
+
+They define lexical scope, type compatibility, array bounds, input suspension,
+package manifests, and the initial standard-package set. Together with this
+workspace, they are the design baseline for a stable JoeLang 1.0 implementation.

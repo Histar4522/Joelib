@@ -1,0 +1,138 @@
+JoeLang 1.0 Standard Packages
+=============================
+
+Status: design baseline
+Namespace: `std/`
+
+1. Package rule
+---------------
+Packages are explicitly activated:
+
+  jinport "std/joemath" as math
+
+An import has a package path, optional version, and optional alias:
+
+  jinport "std/joemath@1.0" as math
+
+When no alias is provided, the final path segment is used when it is unique:
+
+  jinport "std/joetime"
+  show joetime.now()
+
+Package functions and reference types are accessed through their alias. Package
+types use a qualified name, such as `lists.JoerayList<jint>`. This makes ownership
+and collision behavior visible, similar to Java package qualification.
+
+Every package manifest declares its name, semantic version, core API range,
+exports, reference types, requested capabilities, and integrity identity. The
+language pack rejects incompatible or unauthorized packages before execution.
+
+2. std/joemath
+---------------
+Alias: `math`
+Capabilities: none; deterministic pure functions except explicitly seeded random.
+
+Exports:
+
+  math.abs(value)
+  math.min(left, right)
+  math.max(left, right)
+  math.floor(joeble)
+  math.ceil(joeble)
+  math.round(joeble)
+  math.sqrt(joeble)
+  math.pow(base, exponent)
+  math.clamp(value, low, high)
+  math.random(seed)
+
+`math.random(seed)` is deterministic for the same seed. Unseeded randomness is
+not part of 1.0 because it makes examples and tests non-repeatable. Domain errors,
+such as square root of a negative real number, produce a source-mapped runtime
+error rather than a host-language value.
+
+3. std/joeraylist
+------------------
+Alias: `lists`
+Capabilities: none.
+
+This package supplies Java-ArrayList-style dynamic, typed lists:
+
+  jinport "std/joeraylist" as lists
+  has lists.JoerayList<jint> scores = lists.create<jint>()
+  scores.add(90)
+  scores.add(84)
+  show scores.get(0)
+
+API:
+
+  lists.create<Type>()
+  list.add(value)
+  list.get(index)
+  list.set(index, value)
+  list.removeAt(index)
+  list.contains(value)
+  list.clear()
+  list.size()
+  list.toArray()
+
+Indexes are zero-based. `get`, `set`, and `removeAt` require `0 <= index <
+size()`. `add` appends; it does not accept an index in 1.0. Type mismatch and
+bounds violations are source-mapped runtime errors. `removeAt` is the official
+length-changing deletion operation; fixed Joerays never change length.
+
+4. std/joetime
+---------------
+Alias: `joetime`
+Capabilities: clock read only.
+
+Reference types:
+
+  joetime.TimePoint
+  joetime.Duration
+  joetime.Date
+
+API:
+
+  joetime.now()
+  joetime.today()
+  joetime.parse(iso_text)
+  joetime.duration(milliseconds)
+  joetime.between(start, end)
+  joetime.add(time_point, duration)
+  joetime.format(time_point, pattern)
+
+TimePoint and Duration values are immutable. Times use ISO-8601 and UTC by
+default. Local-time formatting requires an explicit timezone argument in a later
+release. `sleep`, timers, and scheduled callbacks are excluded from 1.0 because
+they require an asynchronous event model beyond the input runtime contract.
+
+For tests, the language-pack host may provide a fixed clock; programs do not gain
+access to the host system's clock except through this package.
+
+5. std/joetext
+---------------
+Alias: `text`
+Capabilities: none.
+
+`strjin` is a core immutable type. This package provides familiar text utilities:
+
+  text.length(value)
+  text.charAt(value, index)
+  text.substring(value, start, end)
+  text.contains(value, fragment)
+  text.indexOf(value, fragment)
+  text.toUpper(value)
+  text.toLower(value)
+  text.trim(value)
+  text.split(value, separator)
+
+Text indexes are zero-based and checked. `substring` uses an inclusive start and
+exclusive end, matching Java and C++ ranges. Invalid index/range values report a
+source-mapped runtime error.
+
+6. Explicit exclusions
+----------------------
+JoeLang 1.0 standard packages do not expose arbitrary filesystem access, network
+fetching, process execution, browser DOM access, cookies, persistent storage,
+or unseeded randomness. Such capabilities require separate consent, security,
+and cross-IDE compatibility designs in later releases.

@@ -1,0 +1,10 @@
+jinport "std/joeraylist" as lists
+
+has strjin name = input("Your name")
+has lists.JoerayList<jint> scores = lists.create<jint>()
+scores.add(92)
+scores.add(87)
+
+joeach (jint i = 0, i < scores.size(), i++) {
+  show name + " scored " + scores.get(i)
+}

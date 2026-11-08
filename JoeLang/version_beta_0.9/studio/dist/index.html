@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1e1e1e" />
+    <title>JoeLang Studio</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-theme="dark">
+    <main class="studio-shell" aria-label="JoeLang Studio">
+      <nav class="activity-rail" aria-label="Studio navigation">
+        <div class="rail-brand" aria-label="JoeLang Studio">J<span>λ</span></div>
+        <button class="rail-button active" id="explorer-rail" type="button" aria-label="Explorer" title="Explorer"><span aria-hidden="true">▱</span></button>
+        <button class="rail-button" id="manuals-rail" type="button" aria-label="Open manuals" title="Open manuals"><span aria-hidden="true">▤</span></button>
+        <div class="rail-spacer"></div>
+        <button class="rail-button" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Switch theme"><span aria-hidden="true">◐</span></button>
+        <button class="rail-button" id="shortcuts-button" type="button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts"><span aria-hidden="true">?</span></button>
+      </nav>
+
+      <aside class="explorer" id="explorer" aria-label="File explorer">
+        <div class="panel-heading">
+          <span>EXPLORER</span>
+          <div class="explorer-actions" aria-label="Create project item">
+            <button id="new-file-button" type="button" aria-label="New file" title="New file">＋</button>
+            <button id="new-folder-button" type="button" aria-label="New folder" title="New folder">▱</button>
+            <button id="new-package-button" type="button" aria-label="New package" title="New package">◇</button>
+          </div>
+        </div>
+        <div class="workspace-label"><span aria-hidden="true">⌄</span><span>JOE WORKSPACE</span></div>
+        <div class="file-tree" id="file-tree" aria-label="Project files"></div>
+        <div class="explorer-hint">Right-click anywhere here to add a file, folder, or package.</div>
+      </aside>
+
+      <section class="workspace" aria-label="Code workspace">
+        <header class="titlebar">
+          <div class="titlebar-left"><span class="status-dot" id="save-dot" aria-hidden="true"></span><span id="workspace-title">joe-workspace</span></div>
+          <div class="titlebar-actions">
+            <button class="run-button" id="run-button" type="button" title="Run active file (Ctrl+Enter)"><span aria-hidden="true">▶</span> Run</button>
+            <button class="icon-control" id="toggle-problems" type="button" title="Hide problems" aria-label="Hide problems"><span aria-hidden="true">⊗</span></button>
+            <button class="icon-control" id="toggle-inspector" type="button" title="Hide right sidebar" aria-label="Hide right sidebar"><span aria-hidden="true">▹</span></button>
+          </div>
+        </header>
+
+        <div class="editor-tabs" id="editor-tabs" aria-label="Open files"></div>
+        <div class="editor-region">
+          <div class="editor-toolbar"><span id="crumb-path">src › main.joe</span><span id="editor-mode">JoeLang</span></div>
+          <div class="code-shell">
+            <pre class="line-numbers" id="line-numbers" aria-hidden="true"></pre>
+            <div class="editor-stack">
+              <pre class="syntax-highlight" id="syntax-highlight" aria-hidden="true"><code></code></pre>
+              <textarea id="code-editor" spellcheck="false" aria-label="JoeLang code editor" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea>
+              <div class="completion-menu" id="completion-menu" role="listbox" aria-label="JoeLang completions" hidden></div>
+            </div>
+          </div>
+        </div>
+
+        <section class="problems-panel" id="problems-panel" aria-label="Problems">
+          <div class="problems-header"><span><strong id="problem-count">0</strong> PROBLEMS</span><div><button id="clear-output" type="button">Clear run record</button><button id="hide-problems" type="button" aria-label="Hide problems" title="Hide problems">×</button></div></div>
+          <div class="problems-list" id="problems-list"><span class="quiet">No problems found in the active file.</span></div>
+        </section>
+
+        <footer class="statusbar">
+          <span id="language-status">JoeLang 0.9</span>
+          <span id="cursor-status">Ln 1, Col 1</span>
+          <span id="diagnostic-status">Ready</span>
+          <span class="statusbar-spacer"></span>
+          <span>UTF-8</span>
+          <span>Spaces: 2</span>
+        </footer>
+      </section>
+
+      <aside class="inspector" id="right-sidebar" aria-label="Runtime inspector">
+        <div class="inspector-heading"><span>RUNTIME</span><button id="sidebar-close" type="button" aria-label="Hide right sidebar" title="Hide sidebar">×</button></div>
+        <section class="inspector-section joebject-section">
+          <div class="section-title"><span class="indicator" aria-hidden="true"></span><span>JOEBJECTS</span><span id="run-state" class="run-state">Idle</span></div>
+          <div class="object-tree" id="object-tree"><div class="empty-state">Run a Joe file to inspect its Joebjects.</div></div>
+        </section>
+        <section class="inspector-section transcript-section">
+          <div class="section-title"><span class="indicator blue" aria-hidden="true"></span><span>JAVASCRIPT TRANSCRIPT</span><button id="copy-js" type="button" title="Copy JavaScript" aria-label="Copy JavaScript">⧉</button></div>
+          <pre class="js-transcript" id="js-transcript"><code>// Run the active Joe file to see its JavaScript projection.</code></pre>
+        </section>
+        <section class="inspector-section output-section">
+          <div class="section-title"><span class="indicator green" aria-hidden="true"></span><span>OUTPUT</span></div>
+          <pre class="program-output" id="program-output"><code>Waiting for a run…</code></pre>
+        </section>
+      </aside>
+    </main>
+
+    <div class="context-menu" id="context-menu" role="menu" hidden>
+      <button type="button" role="menuitem" data-create="file">New file</button>
+      <button type="button" role="menuitem" data-create="folder">New folder</button>
+      <button type="button" role="menuitem" data-create="package">New package</button>
+      <button type="button" role="menuitem" id="rename-context-item" hidden>Rename</button>
+      <button type="button" role="menuitem" id="duplicate-context-item" hidden>Duplicate file</button>
+      <button type="button" role="menuitem" id="move-context-item" hidden>Move file</button>
+      <hr />
+      <button type="button" role="menuitem" class="danger-menu-item" id="delete-context-item" hidden>Delete</button>
+    </div>
+
+    <dialog class="studio-dialog" id="create-dialog">
+      <form method="dialog" id="create-form">
+        <div class="dialog-kicker" id="create-kicker">NEW FILE</div>
+        <h2 id="create-title">Create a file</h2>
+        <label for="create-name">Name</label>
+        <input id="create-name" name="create-name" required maxlength="48" autocomplete="off" />
+        <fieldset class="template-choice" id="template-choice">
+          <legend>Starting point</legend>
+          <label><input type="radio" name="file-template" value="template" checked /> Joe file template <small>Joebject, state, and run line</small></label>
+          <label><input type="radio" name="file-template" value="blank" /> Blank file <small>Start with an empty editor</small></label>
+        </fieldset>
+        <p class="dialog-note" id="create-note">A .joe extension will be added if it is not included.</p>
+        <div class="dialog-actions"><button class="secondary" value="cancel" type="submit">Cancel</button><button class="primary" value="confirm" type="submit">Create</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="studio-dialog" id="operation-dialog">
+      <form method="dialog" id="operation-form">
+        <div class="dialog-kicker" id="operation-kicker">FILE OPERATION</div>
+        <h2 id="operation-title">Rename item</h2>
+        <div id="operation-name-group"><label for="operation-name">Name</label><input id="operation-name" required maxlength="48" autocomplete="off" /></div>
+        <div id="operation-destination-group" hidden><label for="operation-destination">Destination folder</label><select id="operation-destination"></select></div>
+        <p class="dialog-note" id="operation-note"></p>
+        <div class="dialog-actions"><button class="secondary" value="cancel" type="submit">Cancel</button><button class="primary" value="confirm" type="submit" id="operation-confirm">Continue</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="confirmation-dialog" id="delete-dialog">
+      <form method="dialog" id="delete-form">
+        <div class="dialog-kicker danger">CONFIRM DELETION</div>
+        <h2 id="delete-title">Delete this item?</h2>
+        <p id="delete-warning">This cannot be undone. Any files inside a folder or package will also be deleted.</p>
+        <div class="dialog-actions"><button class="secondary" value="cancel" type="submit">Cancel</button><button class="secondary" value="never" type="submit">Don't show again</button><button class="danger-button" value="confirm" type="submit">Delete permanently</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="manual-dialog" id="manual-dialog">
+      <div class="manual-dialog-content">
+        <div class="manual-topline"><span>JOELANG REFERENCE</span><button id="manual-close" type="button" aria-label="Close manuals">×</button></div>
+        <h2>Reference books</h2>
+        <p>The coding workspace stays focused. Open a reference only when you need it.</p>
+        <div class="manual-cards">
+          <button class="manual-card" type="button" data-manual="disclosure"><span>Technical disclosure</span><small>Language design, projection, and diagnostics</small><b>Read in Studio →</b></button>
+          <button class="manual-card" type="button" data-manual="manual"><span>User manual</span><small>Syntax, examples, and quick reference</small><b>Read in Studio →</b></button>
+        </div>
+        <article class="manual-reader" id="manual-reader" hidden></article>
+      </div>
+    </dialog>
+
+    <dialog class="shortcut-dialog" id="shortcut-dialog">
+      <div class="shortcut-content"><div class="manual-topline"><span>KEYBOARD SHORTCUTS</span><button id="shortcut-close" type="button" aria-label="Close keyboard shortcuts">×</button></div><dl><dt><kbd>Ctrl</kbd> + <kbd>Enter</kbd></dt><dd>Run active file</dd><dt><kbd>Ctrl</kbd> + <kbd>Space</kbd></dt><dd>Show keyword suggestions</dd><dt><kbd>Tab</kbd></dt><dd>Accept a suggestion or indent</dd><dt><kbd>Esc</kbd></dt><dd>Dismiss a suggestion or menu</dd></dl></div>
+    </dialog>
+
+    <script src="https://joelang-language-pack-20261107.nurturingpeony1.chatgpt.site/joelang-core.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

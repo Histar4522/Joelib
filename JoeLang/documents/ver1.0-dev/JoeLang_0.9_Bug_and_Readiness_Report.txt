@@ -1,0 +1,477 @@
+JoeLang 0.9 Bug and 1.0 Readiness Report
+==========================================
+
+Audit target
+------------
+Repository: N0TD3R3K/Joelib
+Branch: JoeLang
+Audited directory: JoeLang/
+Audited revision: b22bddbb6eb20cfc1c3660db5ddcaeb45f24c54f
+Audit scope: language pack, interpreter/projection behavior, documentation, Console,
+and Studio. No source files were changed during this audit.
+
+Executive summary
+-----------------
+JoeLang 0.9 already has a promising small object-oriented language core and two
+browser UIs. It supports Joebject declarations, owned state, behaviors, parameters,
+object creation, messages, output, returns, conditions, list iteration, and basic
+expressions.
+
+However, it is not yet safe to call it a stable 1.0 release. The primary release
+blocker is semantic inconsistency: the written specification, static analysis,
+JavaScript projection, and interpreter do not consistently accept or execute the
+same program. Several examples in the official manual pass analysis but fail at
+runtime. There is also no automated test suite to prevent regressions.
+
+
+P0 - Release blockers
+=====================
+
+BUG-001: JavaScript projection and actual execution have different semantics
+-------------------------------------------------------------------------
+Symptom
+-------
+JoeLangCore.compile() produces JavaScript, but the IDE does not execute that
+JavaScript. It instead calls JoeLangCore.run(), a separate handwritten interpreter.
+Consequently, the projection pane can show behavior that the runtime cannot perform.
+
+For example:
+
+  joebject A {
+    does value() { give 7 }
+    does run() { show value() }
+  }
+  newjoe A as a
+  a.run()
+
+The generated JavaScript turns value() into this.value(), but the interpreter reports:
+
+  I cannot evaluate "value()".
+
+The projected JavaScript itself is also not a directly runnable script because it
+ends with a top-level return statement.
+
+Root cause
+----------
+The projector translates source text using expressionToJavaScript(), while the
+runtime parses/evaluates expressions separately in evaluateExpression() and execute().
+Neither component consumes a shared statement/expression AST, so feature support has
+diverged.
+
+Locations
+---------
+- JoeLang/pack/joelang-core.js, lines 201-257: source-to-JavaScript projection.
+- JoeLang/pack/joelang-core.js, lines 295-329: expression interpreter.
+- JoeLang/pack/joelang-core.js, lines 374-438: runtime execution.
+- JoeLang/console/dist/app.js, lines 195-220: Console displays compile() output but
+  executes run().
+- JoeLang/studio/dist/app.js, lines 269-275 and 305-320: Studio has the same split.
+
+Recommended fix
+---------------
+Create a real lexer, parser, and typed AST. Both the interpreter and JavaScript
+emitter must consume the same AST. Decide and document one authoritative execution
+model:
+
+1. Interpreter-first: projection is an educational display only, and automated
+   equivalence tests verify that it represents runtime semantics; or
+2. JavaScript-runtime-first: emit a self-contained function/module and execute the
+   emitted code in a controlled runtime.
+
+Do not release 1.0 until every supported construct has matching parse, analysis,
+interpreter, and projection behavior.
+
+
+BUG-002: Valid-looking invalid method bodies receive no compile-time diagnostic
+---------------------------------------------------------------------------
+Symptom
+-------
+An unknown method-body statement can be reported as valid by analyze(), show no
+problem in the IDE, and then fail only when executed. For example:
+
+  joebject A {
+    does go() {
+      mystery syntax
+    }
+  }
+  newjoe A as a
+  a.go()
+
+Analysis has no diagnostics; the runtime later fails with:
+
+  I cannot yet run this line: mystery syntax
+
+Root cause
+----------
+The top-level parser recognizes Joebject declarations and stores each method body as
+raw text. Method statements are only split later, at runtime, by statementsFrom().
+No statement grammar or semantic validation is performed during analysis.
+
+Locations
+---------
+- JoeLang/pack/joelang-core.js, lines 124-152: stores raw method.body text.
+- JoeLang/pack/joelang-core.js, lines 331-371: runtime-only statement splitting.
+- JoeLang/pack/joelang-core.js, line 417: generic late runtime failure.
+- JoeLang/studio/dist/app.js, lines 269-287: Studio presents analyze() diagnostics
+  as the complete problem list.
+
+Recommended fix
+---------------
+Parse behavior bodies during compilation, not during execution. Emit a structured
+diagnostic for every invalid statement or expression, including source range, error
+code, and expected syntax. The run command must be blocked when any parse or semantic
+error exists.
+
+
+BUG-003: Official manual example requires unsupported implicit self calls and object creation
+----------------------------------------------------------------------------------------------
+Symptom
+-------
+The manual's Session example uses an unqualified call to prepare() and creates a
+Joebject inside a behavior:
+
+  timer = newjoe StudyTimer
+  ...
+  prepare()
+  timer.begin()
+
+This example is documented as supported language behavior, but it cannot run. The
+first unsupported line produces "I cannot yet run this line: prepare()". The
+newjoe expression is also not implemented by the interpreter.
+
+Root cause
+----------
+The evaluator only recognizes receiver.method(arguments) messages and does not
+recognize a call to a behavior on the current Joebject. It has no expression or
+statement grammar for newjoe inside a behavior.
+
+Locations
+---------
+- JoeLang/joelang-user-manual.tex, lines 383-398: unsupported Session example.
+- JoeLang/pack/joelang-core.js, lines 323-328: expression calls require an explicit
+  identifier receiver.
+- JoeLang/pack/joelang-core.js, lines 408-417: executable method statements do not
+  include unqualified calls or in-behavior object creation.
+- JoeLang/pack/joelang-core.js, lines 167-183: newjoe is recognized only at top level.
+
+Recommended fix
+---------------
+Choose a 1.0 rule and apply it everywhere. Recommended option: support explicit
+self calls (for example, self.prepare()) first, then decide whether shorthand
+prepare() is permitted. Add a proper NewExpression/NewStatement AST node if object
+creation inside behaviors is part of 1.0. Otherwise remove this example and state
+the restriction clearly in the manual and editor templates.
+
+
+BUG-004: Record/object literals are documented but not executable
+---------------------------------------------------------------
+Symptom
+-------
+The manual says state can be a record and gives this syntax:
+
+  has profile = { name: "Ari", role: "researcher" }
+
+The parser accepts the state declaration, but instance creation fails with:
+
+  I cannot evaluate "{ name: \"Ari\" }".
+
+Root cause
+----------
+evaluateExpression() implements scalar literals and list literals but has no rule
+for record/object literals or record field access.
+
+Locations
+---------
+- JoeLang/joelang-user-manual.tex, lines 320-325 and 347-360: record is promised.
+- JoeLang/pack/joelang-core.js, lines 295-328: expression implementation; line 322
+  handles [] but no equivalent handling exists for {}.
+
+Recommended fix
+---------------
+Either implement records fully (literal parsing, nested values, field read/write,
+equality, diagnostics, projection, and inspector rendering) or remove records from
+the 1.0 language reference. Do not leave documented syntax that passes analysis and
+fails at runtime.
+
+
+BUG-005: Empty-list equality in the official FieldLog example is wrong
+---------------------------------------------------------------------
+Symptom
+-------
+The manual tests an empty list using:
+
+  when entries == [] {
+    show "No observations yet."
+  }
+
+With a newly created object, this condition is false: each [] literal is a distinct
+array object, and the evaluator compares arrays by identity. The documented initial
+empty-list message is therefore skipped.
+
+Root cause
+----------
+The equality implementation uses JavaScript strict equality (===) for all values.
+That is reference equality for lists and future records rather than structural value
+equality.
+
+Locations
+---------
+- JoeLang/joelang-user-manual.tex, lines 523-549: FieldLog example.
+- JoeLang/pack/joelang-core.js, lines 307-312: == maps to left === right.
+
+Recommended fix
+---------------
+Define equality in the language specification. For a beginner-facing value language,
+deep/structural equality for lists and records is usually the least surprising choice.
+Alternatively add a standard operation such as is_empty(entries) and revise the
+manual. Add tests for scalars, lists, nested values, and nonejoe.
+
+
+BUG-006: The public language contract contradicts itself about collections and types
+-----------------------------------------------------------------------------------
+Symptom
+-------
+The language pack sets featureFlags.collections and featureFlags.dataTypes to false,
+while the interpreter implements list literals and each loops, and the manual teaches
+lists and records as base-language values.
+
+Root cause
+----------
+The feature flag/roadmap metadata was not synchronized with current implementation
+and documentation.
+
+Locations
+---------
+- JoeLang/pack/joelang-core.js, lines 32-39: feature flags and roadmap.
+- JoeLang/pack/joelang-core.js, lines 322 and 397-404: lists and iteration exist.
+- JoeLang/joelang-user-manual.tex, lines 320-360: collections and values are described
+  as base language features.
+- JoeLang/README.md, line 24: lists collection operations as future scope.
+
+Recommended fix
+---------------
+Publish a single 1.0 feature matrix generated from or tested against the language
+implementation. Separate "list literals and iteration" from "expanded collection
+operations" if that is the intended distinction. Remove unsupported features from
+autocomplete and documentation.
+
+
+P1 - Important correctness and tooling issues
+==============================================
+
+BUG-007: Keywords are not actually reserved
+-------------------------------------------
+Symptom
+-------
+The manual says fixed keywords must not be used as Joebject, state, or behavior
+names. The parser's identifier pattern accepts them, which permits ambiguous programs
+such as a state named show or a type named when.
+
+Root cause
+----------
+Identifier validation checks only lexical shape, not membership in the keyword set.
+
+Locations
+---------
+- JoeLang/joelang-user-manual.tex, lines 162-184: reserved-keyword rule.
+- JoeLang/pack/joelang-core.js, lines 42-43: identifier pattern accepts keywords.
+- JoeLang/pack/joelang-core.js, lines 108-147: declarations use that pattern without
+  a reserved-word check.
+
+Recommended fix
+---------------
+Create one reserved-word table shared by lexer, parser, diagnostics, syntax highlighter,
+and completions. Reject reserved words in declaration and parameter positions with a
+specific diagnostic.
+
+
+BUG-008: Source diagnostics are incomplete and lack stable source mapping
+--------------------------------------------------------------------------
+Symptom
+-------
+Runtime errors generally point to line 1 in Studio, even if the failing statement is
+inside a method later in the file. Projection errors cannot be mapped reliably back to
+source positions. The manual promises inspectable projection behavior, but no source
+map or span mapping exists.
+
+Root cause
+----------
+Method bodies are raw strings without token/AST source spans. Runtime exceptions are
+ordinary Error objects except for the first analysis error.
+
+Locations
+---------
+- JoeLang/pack/joelang-core.js, lines 45-46: diagnostics store only a line number.
+- JoeLang/pack/joelang-core.js, lines 374-438: most runtime errors have no source span.
+- JoeLang/studio/dist/app.js, lines 317-319: non-diagnostic runtime failures are shown
+  as JOE500 at line 1.
+- JoeLang/joelang-user-manual.tex, lines 429-450: projection inspection promise.
+
+Recommended fix
+---------------
+Put start/end line and column spans on every token and AST node. Preserve spans through
+analysis and emission. Report a structured runtime error containing code, message,
+source span, call stack, and (if projection remains executable) generated-code span.
+
+
+BUG-009: Documentation advertises imports, but ask/from has no implementation
+-------------------------------------------------------------------------
+Symptom
+-------
+ask and from are listed in the keyword catalog and the manual documents imports such
+as "ask clock from \"Joexyjin\"". There is no corresponding parse, analysis, package
+registry, permission prompt, projection, or runtime behavior. It is rejected as an
+unknown top-level statement.
+
+Root cause
+----------
+Imports were designed/documented before a module/capability subsystem was implemented.
+
+Locations
+---------
+- JoeLang/pack/joelang-core.js, lines 20-21: keywords are advertised.
+- JoeLang/pack/joelang-core.js, lines 162-188: top-level parser has no import branch.
+- JoeLang/joelang-user-manual.tex, lines 407-425: unsupported import model.
+
+Recommended fix
+---------------
+For 1.0, either exclude imports completely and remove these keywords/examples, or
+implement a narrow capability registry with an allowlist, declared permission metadata,
+deterministic package versioning, and safe host APIs. It must not provide unrestricted
+browser access to JoeLang programs.
+
+
+BUG-010: No automated tests or repeatable verification workflow
+---------------------------------------------------------------
+Symptom
+-------
+The audited JoeLang directory contains no unit/integration test suite, package
+manifest, test command, or CI configuration. Manual examples can drift from the
+runtime without detection.
+
+Root cause
+----------
+The project is a buildless/static prototype and has not yet received release
+engineering infrastructure.
+
+Locations
+---------
+- JoeLang/pack/joelang-core.js: core implementation has no adjacent test suite.
+- JoeLang/: no test directory, package.json, or CI workflow was present in the audited
+  directory.
+
+Recommended fix
+---------------
+Add a dependency-light test runner if preserving the buildless approach is important.
+At minimum, test parsing, diagnostics, interpretation, projection syntax, and
+projection/interpreter equivalence. Convert every manual example into an executable
+golden test. Run the suite in CI for every change.
+
+
+BUG-011: Studio workspace and run records are not persistent
+------------------------------------------------------------
+Symptom
+-------
+Studio exposes files, folders, packages, delete, and a "Clear run record" control,
+but the file tree and contents live only in a JavaScript array. Refreshing loses work.
+The run record is only output text, not the source/version/projection/state record
+promised by the manual.
+
+Root cause
+----------
+Studio is an in-memory static UI. localStorage is used only for the delete-warning
+preference.
+
+Locations
+---------
+- JoeLang/studio/dist/app.js, lines 46-62: in-memory files and runRecord string.
+- JoeLang/studio/dist/app.js, lines 134-149: deletion mutates the in-memory array.
+- JoeLang/studio/dist/app.js, lines 305-320: run record stores only text output.
+- JoeLang/studio/dist/app.js, lines 465-468: localStorage only stores warning choice.
+- JoeLang/joelang-user-manual.tex, lines 453-468: documented run-record expectations.
+
+Recommended fix
+---------------
+For a 1.0 IDE, define whether persistence is in scope. If yes, add explicit save/open/
+export/import behavior using browser storage or files, with clear data-loss messaging.
+Represent a run record as structured data containing source, JoeLang version, generated
+projection identity, diagnostics, output, state snapshot, and timestamp. If persistence
+is out of scope, remove save-like visual cues and document the workspace as temporary.
+
+
+BUG-012: Claimed offline distribution still depends on a mutable remote language pack
+-------------------------------------------------------------------------------
+Symptom
+-------
+Console and Studio load JoeLangCore from an external hosted URL. A copied dist folder
+therefore cannot run offline, and a language-pack change at that URL can alter behavior
+without a UI release.
+
+Root cause
+----------
+The static UIs use a network script tag rather than a packaged, version-pinned core.
+
+Locations
+---------
+- JoeLang/studio/dist/index.html, lines 154-155.
+- JoeLang/console/dist/index.html, lines 186-187.
+- JoeLang/README.md, lines 20 and 26-28: version-update and offline-distribution claims.
+
+Recommended fix
+---------------
+Ship a local, content-versioned copy of joelang-core.js with every offline distribution.
+For hosted deployments, use versioned immutable URLs (or integrity hashes) and display
+the loaded language-pack version in the UI. Treat API compatibility as separate from
+semantic language-version compatibility.
+
+
+BUG-013: Console inspector inserts user-controlled content as HTML
+-----------------------------------------------------------------
+Symptom
+-------
+The Console inspector builds HTML through template strings using Joebject alias names,
+state names, state values, type names, and behavior names. A program containing HTML
+in a state string can inject markup into the inspector.
+
+Root cause
+----------
+renderInspector() assigns interpolated values to innerHTML without HTML escaping or
+DOM text nodes.
+
+Locations
+---------
+- JoeLang/console/dist/app.js, lines 178-185.
+
+Recommended fix
+---------------
+Construct inspector rows using document.createElement() and textContent, as Studio
+mostly does. If templating is retained, escape every dynamic value before interpolation.
+Add an XSS regression test using strings containing <, >, quotes, and event attributes.
+
+
+Recommended 1.0 order of work
+==============================
+
+1. Freeze a deliberately small 1.0 grammar and remove unsupported promises from the
+   specification, keyword catalog, autocomplete, and examples.
+2. Implement lexer -> parser -> AST -> semantic analysis as the single language model.
+3. Implement interpreter and JavaScript emitter from that AST; test their semantic
+   equivalence where both are retained.
+4. Repair or remove all manual examples until every example is a passing automated test.
+5. Add diagnostics with source spans, stable error codes, and call-stack information.
+6. Add a test suite and CI before introducing additional syntax or standard-library APIs.
+7. Package the core reproducibly, then finalize Studio/Console persistence, export, and
+   safe inspector rendering.
+
+Suggested 1.0 scope boundary
+============================
+
+The safest 1.0 target is a small, complete Joebject language: declarations, state,
+methods, explicit object creation, messages, parameters, return values, scalar values,
+lists, conditions, iteration, output, useful diagnostics, and a tested browser IDE.
+
+Records, in-method object construction, shorthand/self calls, external Joelement
+imports, advanced collection operations, and persistent projects should be included
+only if their complete semantics, diagnostics, tests, and documentation can be shipped
+together. A smaller coherent 1.0 is substantially better than a larger release whose
+documented programs pass analysis but fail at runtime.

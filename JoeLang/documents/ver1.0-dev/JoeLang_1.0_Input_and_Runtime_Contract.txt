@@ -1,0 +1,73 @@
+JoeLang 1.0 Input and Runtime Contract
+======================================
+
+Status: design baseline
+
+1. Input syntax
+---------------
+`input` is a core expression, not a compile-time action:
+
+  has strjin name = input("What is your name?")
+  has jint age = input("What is your age?")
+
+The expected type is inferred from the receiving declaration or assignment. An
+input expression without an expected type is a compile-time error.
+
+  age = input("New age?")
+
+is valid when `age` is already declared. `input` returns the same type as its
+destination after conversion.
+
+2. Runtime state machine
+------------------------
+Programs have four observable states:
+
+  ready -> running -> waiting-for-input -> running -> completed
+                              |                 |
+                              +-> cancelled ----+
+
+Compilation performs no input. When runtime reaches `input`, it emits an input
+request containing a prompt, requested type, source span, and request ID. Runtime
+does not execute the next statement until a response is supplied.
+
+3. User interaction
+-------------------
+The standard interaction is:
+
+1. The IDE displays the prompt in its runtime/input area.
+2. The user enters text and presses Enter.
+3. The host sends the response to the language pack.
+4. The pack converts and validates the response, assigns the value, and resumes.
+
+The existing Studio and Console may use a browser-native prompt as the default
+input host until their runtime panels provide an input field. This fallback keeps
+the language pack compatible with older IDEs. A host with no input provider must
+report `JOE610 Input host unavailable` rather than silently failing.
+
+4. Conversion and cancellation
+------------------------------
+For `strjin`, the entered text is used as entered. For `jint`, `joeble`, `jong`,
+and `joelean`, the input must be a complete valid literal for that type.
+
+- `jint`: optional leading `-` followed by base-10 digits within jint range.
+- `joeble`: base-10 decimal syntax; non-finite values are rejected.
+- `jong`: optional leading `-`, base-10 digits, optionally with a trailing `J`.
+- `joelean`: only `joet` or `joef`.
+
+Invalid text does not assign a value. The request remains active, displays an
+explanation, and allows another attempt. Canceling an input request assigns
+`gunmu` only when the receiving type is nullable; otherwise it produces
+`JOE611 Required input was cancelled` and stops execution.
+
+5. Determinism, safety, and tests
+---------------------------------
+The language pack accepts an optional input-provider interface. Automated tests
+supply a scripted provider, allowing repeatable input tests without browser UI.
+Input text is plain data: it is never evaluated as JoeLang or JavaScript code.
+Input history is private to the IDE session unless the user explicitly saves it.
+
+6. Compatibility promise
+------------------------
+An IDE that supports the existing core API can continue to run programs without
+input. An IDE that advertises JoeLang 1.0 input support must implement the input
+request/response contract or use the pack's native-prompt fallback.

@@ -1,0 +1,663 @@
+% JoeLang User Manual
+% Standalone, Overleaf-ready LaTeX source. Compile with pdfLaTeX.
+\documentclass[12pt]{article}
+
+\usepackage[margin=0.85in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{array,booktabs,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{tcolorbox}
+
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black,pdftitle={JoeLang User Manual},pdfauthor={Joe Team Working Draft}}
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+\setlist{itemsep=3pt,topsep=4pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{JOELANG USER MANUAL}
+\rhead{Joe Team Reference Book}
+\cfoot{Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\definecolor{joeBlue}{HTML}{173A8C}
+\definecolor{joeTeal}{HTML}{126B64}
+\definecolor{joeGrey}{HTML}{F3F5F8}
+\definecolor{joeWarn}{HTML}{8A4B00}
+\lstdefinestyle{joe}{basicstyle=\ttfamily\small,backgroundcolor=\color{joeGrey},frame=single,rulecolor=\color{joeBlue!40},columns=fullflexible,keepspaces=true,showstringspaces=false,xleftmargin=0.4em,xrightmargin=0.4em,aboveskip=0.7em,belowskip=0.7em}
+\newtcolorbox{tipbox}{colback=joeTeal!5,colframe=joeTeal!75!black,title=Team tip,fonttitle=\bfseries}
+\newtcolorbox{rulebox}{colback=joeBlue!4,colframe=joeBlue!75!black,title=Central rule,fonttitle=\bfseries}
+\newtcolorbox{warnbox}{colback=yellow!8,colframe=joeWarn,title=Watch for this,fonttitle=\bfseries}
+\newcommand{\JoeLang}{\textsc{JoeLang}}
+\newcommand{\Joebject}{\textsc{Joebject}}
+\newcommand{\kw}[1]{\texttt{#1}}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\Large\bfseries THE JOE TEAM REFERENCE BOOK\par}
+\vspace{1.1cm}
+{\huge\bfseries \JoeLang\par}
+\vspace{0.35cm}
+{\Large Object-Facing Programming for Humans\par}
+\vspace{0.8cm}
+{\large Version 0.9 --- Working Manual\par}
+\vfill
+\begin{minipage}{0.86\textwidth}
+\small
+\textbf{What this book is for.} This manual explains how to read, write, project, and debug \JoeLang programs in the planned online IDE. It is written for Joe Team members who want a practical shared notation before building the console.
+
+\vspace{0.6em}
+\textbf{Framing.} At the beginning, one point should be plain: this is a creative parody reference built from the Joelib archive and a new JoeLang specification. It does not alter ownership or meaning of the cited source materials.
+
+\vspace{0.6em}
+\textbf{The promise.} Start with the thing in your program. Give it state. Give it behavior. Send it a message. Let the console show you what happened.
+\end{minipage}
+\vfill
+\textbf{Prepared for the Joe Team}\par
+\today
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\section{Welcome to \JoeLang}
+\JoeLang is a planned language for making small programs, interactive sketches, tools, and demos in an online console. It projects to JavaScript, but you normally begin with a more direct question: \emph{what thing is this program about?} That thing is a \Joebject.
+
+The language was designed from patterns already visible in Joelib. Joeglish work emphasizes dependable two-way word transformation. The Joelements project keeps familiar chemical symbols while making Joe names visible. The archive organizes information as a growing collection of research records, literature, visual material, and regional lists.\cite{translatorReadme,joelements,joelibReadme} \JoeLang takes the same practical attitude: keep execution understandable, make the Joe-facing language readable, and leave evidence visible.
+
+You do not need to know JavaScript before learning this manual. You will eventually be able to inspect the JavaScript projection, but the first skill is to describe an object and what it can do.
+
+\begin{tipbox}
+Read every program as a small cast list. A \Joebject\ is a named actor. \kw{has} describes what it carries. \kw{does} describes what it can do. A message asks it to do one of those things.
+\end{tipbox}
+
+This book uses the words \emph{program}, \emph{source}, and \emph{Joe file} interchangeably. A complete program may contain one or more Joebjects plus a few messages that begin the action.
+
+\clearpage
+\section{Your First Program}
+Here is a complete small program. Type it in the Source pane of the online IDE, then choose \emph{Project and Run}.
+
+\begin{lstlisting}[style=joe]
+joebject Greeter {
+  has name = "Joe Team"
+
+  does welcome() {
+    show "Welcome, " + name + "!"
+  }
+}
+
+newjoe Greeter as guide
+guide.welcome()
+\end{lstlisting}
+
+The program produces:
+
+\begin{lstlisting}[style=joe]
+Welcome, Joe Team!
+\end{lstlisting}
+
+Read it from top to bottom.
+\begin{enumerate}
+  \item \kw{joebject Greeter} creates the kind of thing this program knows about.
+  \item \kw{has name} gives every Greeter a remembered piece of data.
+  \item \kw{does welcome()} gives every Greeter an action.
+  \item \kw{newjoe Greeter as guide} creates one Greeter named \kw{guide}.
+  \item \kw{guide.welcome()} sends the \kw{welcome} message to that object.
+\end{enumerate}
+
+\begin{rulebox}
+The dot means ``send this message to that receiver.'' In \kw{guide.welcome()}, \kw{guide} is the receiver and \kw{welcome} is the behavior being requested.
+\end{rulebox}
+
+When you run a program, the console shows four useful views: your Joe source, the projected JavaScript, the output, and a Joebject Inspector. You are encouraged to inspect the projection, but you do not need to edit it to use the language.
+
+\clearpage
+\section{The Object-Facing Mental Model}
+Object-facing programming is not a test you need to pass. It is a way of keeping programs easy to explain.
+
+Consider a timer. In a procedure-first design, a file might begin with variables and scattered functions. In \JoeLang, begin with the timer itself:
+
+\begin{lstlisting}[style=joe]
+joebject StudyTimer {
+  has minutes = 25
+  has running = falsejoe
+
+  does begin() {
+    running = truejoe
+    show "Timer started."
+  }
+
+  does stop() {
+    running = falsejoe
+    show "Timer stopped."
+  }
+}
+\end{lstlisting}
+
+The reader immediately sees the object, its remembered state, and its behavior. This is the main benefit of the design. It does not forbid small helper calculations; it asks you to place those calculations inside the object that owns their meaning.
+
+\begin{longtable}{p{0.28\textwidth}p{0.62\textwidth}}
+\toprule
+\textbf{Question} & \textbf{JoeLang answer}\\
+\midrule
+What is this program about? & Name a \Joebject.\\
+What does it remember? & Declare it with \kw{has}.\\
+What can it do? & Declare it with \kw{does}.\\
+Who starts the action? & Create it with \kw{newjoe} and send a message.\\
+Who may change this value? & Its owning Joebject, through one of its behaviors.\\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Keyword Field Guide}
+The following words have fixed meanings in version 0.9. Do not use them as names for your own Joebjects, state, or behaviors.
+
+\begin{longtable}{p{0.18\textwidth}p{0.26\textwidth}p{0.46\textwidth}}
+\toprule
+\textbf{Keyword} & \textbf{Use} & \textbf{Meaning}\\
+\midrule
+\endhead
+\kw{joebject} & declaration & Begins a named object definition.\\
+\kw{has} & state & Gives a Joebject an owned value.\\
+\kw{does} & behavior & Defines an action the Joebject can receive.\\
+\kw{newjoe} & creation & Creates an instance of a Joebject type.\\
+\kw{as} & naming & Gives a created instance a local name.\\
+\kw{when} & decision/event & Runs a block when a condition is true.\\
+\kw{otherwise} & decision & Supplies the other path for a \kw{when}.\\
+\kw{give} & return & Sends a value back from a behavior.\\
+\kw{show} & output & Writes a value to the console.\\
+\kw{ask} & import & Requests an approved Joelement or package binding.\\
+\kw{from} & import & States where an approved binding comes from.\\
+\kw{each} / \kw{in} & loop & Repeats an action for values in a collection.\\
+\kw{truejoe} / \kw{falsejoe} & logic & The two logical values.\\
+\kw{nonejoe} & empty value & A deliberate ``no value here'' marker.\\
+\bottomrule
+\end{longtable}
+
+The terms borrow the archive's established Joe-facing naming practice, but these exact language meanings are part of the new JoeLang specification. Joeglish source work is especially relevant because it treats a Joe spelling as a disciplined mapping rather than random decoration.\cite{translatorSource,translatorEngine}
+
+\clearpage
+\section{Declaring Joebjects}
+Use \kw{joebject} to make a blueprint. A blueprint is not yet a running object. It is a description from which you can create objects later.
+
+\begin{lstlisting}[style=joe]
+joebject Notebook {
+  has title = "Untitled"
+  has pages = 0
+
+  does add_page() {
+    pages = pages + 1
+    give pages
+  }
+}
+\end{lstlisting}
+
+Names should begin with a letter. By convention, use a capitalized singular name for a Joebject type, a lower-case name for an instance, and lower-case words joined by underscores for behaviors and state.
+
+\begin{longtable}{p{0.30\textwidth}p{0.25\textwidth}p{0.35\textwidth}}
+\toprule
+\textbf{Prefer} & \textbf{Avoid} & \textbf{Reason}\\
+\midrule
+\kw{Notebook} & \kw{notebook\_thing\_2} & A type should state what it is.\\
+\kw{study\_timer} & \kw{x} & An instance name should say its role.\\
+\kw{add\_page} & \kw{DoTheThing} & Behaviors are easier to scan as actions.\\
+\kw{page\_count} & \kw{p} & State should identify what is remembered.\\
+\bottomrule
+\end{longtable}
+
+\begin{warnbox}
+A Joebject declaration does not run its behaviors. You must create an instance with \kw{newjoe}, then send it a message.
+\end{warnbox}
+
+\clearpage
+\section{State: What a Joebject Has}
+State is data that belongs to one Joebject. Declare it near the top of the Joebject with \kw{has}. A value can be text, a number, a logical value, a list, a record, or \kw{nonejoe}.
+
+\begin{lstlisting}[style=joe]
+joebject Lantern {
+  has color = "blue"
+  has charge = 3
+  has lit = falsejoe
+}
+\end{lstlisting}
+
+Inside a behavior of \kw{Lantern}, you can read and change \kw{color}, \kw{charge}, and \kw{lit} directly. Outside the Joebject, ask the lantern to do something instead of reaching into its private state.
+
+\begin{lstlisting}[style=joe]
+joebject Lantern {
+  has charge = 3
+
+  does use_one_charge() {
+    when charge > 0 {
+      charge = charge - 1
+    }
+    give charge
+  }
+}
+\end{lstlisting}
+
+\begin{rulebox}
+State belongs to its owner. A behavior may update its own state. Another Joebject requests a behavior; it does not perform a hidden state update from a distance.
+\end{rulebox}
+
+This rule makes bugs easier to locate. When \kw{charge} changes, there is a small, predictable group of places to inspect: behaviors owned by \kw{Lantern}.
+
+\clearpage
+\section{Behaviors and Messages}
+Use \kw{does} to define an action. Put inputs inside parentheses. Use \kw{give} when the behavior should send a value back.
+
+\begin{lstlisting}[style=joe]
+joebject Scoreboard {
+  has score = 0
+
+  does add(points) {
+    score = score + points
+    give score
+  }
+}
+
+newjoe Scoreboard as board
+show board.add(10)
+\end{lstlisting}
+
+The message \kw{board.add(10)} asks \kw{board} to run its \kw{add} behavior with \kw{10} as the value of \kw{points}. The behavior changes owned state, then gives the new score back to the caller.
+
+Messages can have no inputs, one input, or several ordered inputs:
+
+\begin{lstlisting}[style=joe]
+lamp.turn_on()
+board.add(10)
+map.move_to(4, 7)
+\end{lstlisting}
+
+\begin{tipbox}
+If you struggle to name a behavior, write a short sentence: ``The map can move to a location.'' The behavior name is often \kw{move\_to}; the receiver is \kw{map}.
+\end{tipbox}
+
+\clearpage
+\section{Making Decisions with \texttt{when}}
+Use \kw{when} to choose an action based on a true or false condition. Use \kw{otherwise} when you need an alternate path.
+
+\begin{lstlisting}[style=joe]
+joebject Door {
+  has locked = truejoe
+
+  does enter() {
+    when locked {
+      show "The door is locked."
+    } otherwise {
+      show "Welcome in."
+    }
+  }
+
+  does unlock() {
+    locked = falsejoe
+  }
+}
+\end{lstlisting}
+
+Conditions use familiar comparisons:
+
+\begin{lstlisting}[style=joe]
+when score >= 100 { show "Level complete" }
+when name == "Joe" { show "Recognized" }
+when not ready { show "Still preparing" }
+\end{lstlisting}
+
+Use a condition that is easy to say aloud. ``When the door is locked, show the locked message'' is clearer than a complicated expression that combines several unrelated tests. If you do need multiple tests, group them in a behavior with a meaningful name such as \kw{can\_enter()}.
+
+\clearpage
+\section{Collections and Repetition}
+A collection is a group of values. In the base language, write a list with square brackets and a record with braces and named fields.
+
+\begin{lstlisting}[style=joe]
+has regions = ["Kanjoe", "Joeto", "Joenn"]
+has profile = { name: "Ari", role: "researcher" }
+\end{lstlisting}
+
+Use \kw{each} and \kw{in} to do the same behavior for every value in a collection.
+
+\begin{lstlisting}[style=joe]
+joebject RollCall {
+  has names = ["Ari", "Bo", "Cy"]
+
+  does greet_everyone() {
+    each person in names {
+      show "Hello, " + person
+    }
+  }
+}
+\end{lstlisting}
+
+The collection is read from left to right. The name after \kw{each} is a temporary value available within the braces. It is not state and disappears when that repetition ends.
+
+Regional Joekemon lists in Joelib provide a useful model for grouped names: a region can organize a collection without changing what each named item is.\cite{joekemon} In the IDE, the same idea will organize optional packages and example collections.
+
+\clearpage
+\section{Text, Numbers, and Values}
+Text is written between quotes. Numbers are written directly. Logical values are \kw{truejoe} and \kw{falsejoe}. Use \kw{nonejoe} to show that a value is intentionally not available yet.
+
+\begin{longtable}{p{0.23\textwidth}p{0.26\textwidth}p{0.42\textwidth}}
+\toprule
+\textbf{Kind} & \textbf{Example} & \textbf{When to use it}\\
+\midrule
+Text & \kw{"Joe team"} & Names, labels, messages, written content.\\
+Number & \kw{42} & Counts, amounts, positions, scores.\\
+Logic & \kw{truejoe} & A yes/no state or condition.\\
+Empty & \kw{nonejoe} & A value that has not been chosen or found.\\
+List & \kw{["red", "blue"]} & An ordered group.\\
+Record & \kw{\{ name: "Ari" \}} & Several named values that belong together.\\
+\bottomrule
+\end{longtable}
+
+Use \kw{+} to join text or add numbers. The IDE will warn you when it cannot tell which one you meant. Keep values of the same kind together where possible.
+
+\begin{lstlisting}[style=joe]
+show "Pages: " + pages
+has total = price + tax
+\end{lstlisting}
+
+The language's display words are deliberately separate from values. A string such as \kw{"Joeglish"} is data; the compiler does not rewrite the letters inside it during normal projection. This protects stored names, quotations, and messages from accidental transformation. The practice follows the translator's careful separation of word tokens from non-word content.\cite{translatorEngine}
+
+\clearpage
+\section{Creating and Connecting Joebjects}
+Use \kw{newjoe} to create an instance. Use \kw{as} to name it so the rest of the program can send it messages.
+
+\begin{lstlisting}[style=joe]
+newjoe StudyTimer as timer
+timer.begin()
+\end{lstlisting}
+
+Joebjects can work together by sending messages. Here, a \kw{Session} asks its own timer to begin.
+
+\begin{lstlisting}[style=joe]
+joebject Session {
+  has timer = nonejoe
+
+  does prepare() {
+    timer = newjoe StudyTimer
+  }
+
+  does start() {
+    when timer == nonejoe {
+      prepare()
+    }
+    timer.begin()
+  }
+}
+\end{lstlisting}
+
+The practical rule is simple: keep the relationship visible. If \kw{Session} owns the timer it uses, store it in \kw{timer}. If it only needs to use a timer temporarily, receive that timer as a behavior input instead.
+
+\begin{warnbox}
+Do not create a long hidden chain of objects that all change each other. Prefer one message at a time: \kw{session.start()} asks the session to decide what must happen next.
+\end{warnbox}
+
+\clearpage
+\section{Joelements and Approved Imports}
+A Joelement is an approved library capability with a Joe-facing name, a clear description, and an inspectable host implementation. Use \kw{ask} and \kw{from} to request one.
+
+\begin{lstlisting}[style=joe]
+ask clock from "Joexyjin"
+
+joebject Bell {
+  does ring_later() {
+    clock.after(1000, "ring")
+  }
+}
+\end{lstlisting}
+
+The exact initial library catalog will be set by the IDE build. The source rule does not change: an import must name both the local binding and the approved Joelement package. The console will show the package's permissions, host capability, and documentation before first use.
+
+This naming model is informed by the Joelements interface: it presents a Joe identity while retaining an original anchor for clarity.\cite{joelements} In a program, the source-level Joelement name is the friendly front door; the generated JavaScript and module record remain available for inspection.
+
+\begin{rulebox}
+Imports are requests, not hidden powers. If a program has not asked for a capability, it does not receive it.
+\end{rulebox}
+
+\clearpage
+\section{Reading the Projection Pane}
+The IDE's Projection pane displays JavaScript created from your source. It is there to build trust and help with learning, not to make every user a JavaScript programmer.
+
+For example, this JoeLang behavior:
+
+\begin{lstlisting}[style=joe]
+does add(points) {
+  score = score + points
+  give score
+}
+\end{lstlisting}
+
+will project to a JavaScript method with a return statement. The exact generated spelling can vary between compiler versions, but the behavior must remain the same: accept \kw{points}, update the owning score, then return it.
+
+Use the Projection pane in three situations:
+\begin{enumerate}
+  \item You want to confirm that a source word became the host feature you expected.
+  \item You receive a runtime error and need to see which source line generated the failing host code.
+  \item You are learning how a JavaScript idea relates to a JoeLang idea.
+\end{enumerate}
+
+The projection layer is inspired by Joeglish translation work, which documents direction, mapping, casing, and a round-trip result instead of treating transformation as mysterious.\cite{translatorReadme,translatorEngine} The IDE will similarly identify the source span, structural rule, and generated span for a selected token.
+
+\clearpage
+\section{Console, Inspector, and Run Records}
+Every run makes a small record. The record contains:
+
+\begin{itemize}
+  \item the source text and language version;
+  \item the projection version and generated-code identity;
+  \item console output and returned values;
+  \item a snapshot of visible Joebject state; and
+  \item any warnings or errors.
+\end{itemize}
+
+The Joebject Inspector is especially useful for beginners. It shows a tree such as:
+
+\begin{lstlisting}[style=joe]
+guide : Greeter
+  name: "Joe Team"
+  behaviors: welcome
+\end{lstlisting}
+
+If your output is surprising, look first at the inspector. Ask: did the correct object receive the message? Did its remembered state have the value I expected? Did the behavior return a value or only show one?
+
+The UI should make keyboard navigation and text copying available for every pane. JOESII demonstrates an archive-facing visual language built around displayed characters and signal-like motion; the console can take visual inspiration from it without replacing readable text with effects.\cite{joesii}
+
+\clearpage
+\section{Errors You Will Meet}
+Errors are evidence. Read the first line, then use the source span and suggested next action.
+
+\begin{longtable}{p{0.29\textwidth}p{0.30\textwidth}p{0.31\textwidth}}
+\toprule
+\textbf{Diagnostic} & \textbf{Usually means} & \textbf{First fix to try}\\
+\midrule
+\endhead
+Unknown Joebject & The blueprint name was misspelled or not declared. & Check the spelling after \kw{joebject}.\\
+Unknown receiver & You sent a message to a name that has no current object. & Create it with \kw{newjoe} or pass it in.\\
+Behavior not observed on receiver & The object exists, but it has no behavior with that name. & Check the \kw{does} declaration and message spelling.\\
+State may only change through its owner & Code outside the object tried to change private state. & Add a behavior to the owner and send it a message.\\
+Expected closing brace & A block was opened but not closed. & Match each \kw{\{} with a \kw{\}}.\\
+Projection mapping is not reversible & A display transformation would collide with another name. & Keep the stable identifier or choose another name.\\
+Capability not approved & A library action was requested without an approved import. & Add an \kw{ask ... from ...} statement or choose a local operation.\\
+\bottomrule
+\end{longtable}
+
+\begin{tipbox}
+Fix the earliest error first. A missing brace near the top can cause many later messages that disappear as soon as the first mistake is corrected.
+\end{tipbox}
+
+\clearpage
+\section{Style Guide for Joe Team Programs}
+Good JoeLang source should be easy to narrate to another team member.
+
+\subsection*{Name things by their role}
+Prefer \kw{research\_log}, \kw{signal\_reader}, and \kw{study\_timer} over one-letter names. The additional characters save time when someone else reads the program later.
+
+\subsection*{Keep behaviors short}
+A behavior should normally do one recognizable job. If it begins to handle setup, validation, calculation, display, and cleanup all at once, divide it into smaller named behaviors.
+
+\subsection*{Show, then give}
+Use \kw{show} for a message a human should see. Use \kw{give} for a value another part of the program needs. A behavior may use both, but do not assume console output is a return value.
+
+\subsection*{Keep state close to its owner}
+If a value belongs to the lantern, the timer, or the research log, declare it inside that Joebject. Do not build a hidden pile of unrelated global values.
+
+\subsection*{Explain the unusual part}
+Use a short comment before a surprising choice. Comments are never projected through the Joeglish dictionary, so they remain safe places for straightforward explanation.
+
+\clearpage
+\section{A Small Complete Example}
+This example combines a Joebject, state, a behavior input, a decision, a list, repetition, output, and a returned value.
+
+\begin{lstlisting}[style=joe]
+joebject FieldLog {
+  has entries = []
+
+  does record(note) {
+    entries = entries + [note]
+    show "Recorded: " + note
+    give entries
+  }
+
+  does review() {
+    when entries == [] {
+      show "No observations yet."
+    } otherwise {
+      each entry in entries {
+        show "- " + entry
+      }
+    }
+  }
+}
+
+newjoe FieldLog as log
+log.record("Signal received")
+log.record("Projection verified")
+log.review()
+\end{lstlisting}
+
+Walk through the program before running it. \kw{log} is an instance of \kw{FieldLog}. It begins with an empty list. Each \kw{record} message makes a new list containing the old entries plus the new note. The \kw{review} message decides whether there is anything to show, then prints each entry.
+
+The best habit is to predict the output before pressing Run. If the actual output differs, use the inspector to check \kw{entries} after each message.
+
+\clearpage
+\section{Exercises for the Joe Team}
+Try these in the IDE once the first console version is available. Write the source yourself before looking at the suggested shape.
+
+\begin{enumerate}
+  \item Create a \kw{Badge} Joebject with a \kw{name} state and a \kw{display()} behavior.
+  \item Create a \kw{Counter} with a number state and an \kw{increase(by)} behavior that gives the new number back.
+  \item Add a \kw{reset()} behavior to the Counter.
+  \item Create a \kw{Checklist} that keeps a list of tasks and shows them one per line.
+  \item Create a \kw{Door} with locked state. Add \kw{lock()}, \kw{unlock()}, and \kw{enter()} behaviors.
+  \item Ask for one approved time-related Joelement and make a Joebject schedule a message.
+  \item Deliberately send a message to a nonexistent behavior. Read the diagnostic, then repair the spelling.
+  \item Select one identifier in the Source pane and follow its path in the Projection pane.
+\end{enumerate}
+
+When sharing an exercise result, send three things: the source, the console output, and the run record. That is enough for another team member to reproduce most problems without guessing.
+
+\clearpage
+\section{Quick Reference}
+\begin{lstlisting}[style=joe]
+// A Joebject blueprint
+joebject Name {
+  has state_name = value
+
+  does behavior_name(input) {
+    when condition {
+      show "visible message"
+      give value
+    } otherwise {
+      show "other path"
+    }
+  }
+}
+
+// Create and use it
+newjoe Name as instance
+instance.behavior_name(value)
+
+// Repeat over a list
+each item in items {
+  show item
+}
+
+// Request an approved library feature
+ask local_name from "JoelementName"
+\end{lstlisting}
+
+\begin{rulebox}
+The five questions to ask when reading a program are: What is the Joebject? What state does it have? What behavior is being requested? Which object receives the message? What value or output should result?
+\end{rulebox}
+
+\clearpage
+\section{Source Notes and Credits}
+The new language rules in this manual are a Joe Team specification. Their design cues come from the Joelib materials listed below. The credits use the attributions supplied for this manual:
+
+\begin{longtable}{p{0.30\textwidth}p{0.57\textwidth}}
+\toprule
+\textbf{Contributor} & \textbf{Referenced work}\\
+\midrule
+\endhead
+Derek Li & Joelements, \emph{The Great Joetsby}, and the Joe Wiki.\\
+Joe Jin (the central figure himself) & Joeglish Grammar.\\
+Wayne Xu & Joeglish Translator, JOESII, and JOESII art.\\
+Matthew DeRoma & Joekemons.\\
+Emilia Marcucci & \emph{Joelet Speech}.\\
+\bottomrule
+\end{longtable}
+
+The repository README is the index to those documents and projects. It describes Joelib as a projection of the Joe universe and links the primary materials used for this manual.\cite{joelibReadme} The material supports the language's vocabulary, archival attitude, reversible translation inspiration, and interface motifs; it does not itself define the new JoeLang grammar.
+
+\clearpage
+\section{Closing Note}
+Use \JoeLang to make programs that another person can read as a conversation among named things. Keep the source clear, inspect the projection when it helps, and leave a useful run record for the next person.
+
+This final note repeats the scope plainly: JoeLang and this manual are parody design work for the Joe Team. The source archive remains credited to the contributors named above and to the Joelib repository.
+
+\clearpage
+\begin{thebibliography}{99}
+\addcontentsline{toc}{section}{Sources}
+\bibitem{joelibReadme}
+N0TD3R3K/Joelib contributors. \emph{Joelib README}. Repository index to the Joe Wiki, Joeglish Grammar, \emph{The Great Joetsby}, Joelements, Joekemons, Joelet Speech, JOESII, and Joegle Translate. \url{https://github.com/N0TD3R3K/Joelib/blob/main/README.md}. Accessed 2026-11-06.
+
+\bibitem{translatorReadme}
+Wayne Xu (attribution supplied by the Joe Team). \emph{Joegle Translate README}. English--Joeglish interface and deterministic transformation description. \url{https://github.com/N0TD3R3K/Joelib/blob/main/joeglish_translator/README.md}. Accessed 2026-11-06.
+
+\bibitem{translatorSource}
+Wayne Xu (attribution supplied by the Joe Team). \emph{Joeglish dictionary generator}. Seed mappings, candidate rules, collision checks, and bijectivity assertions. \url{https://github.com/N0TD3R3K/Joelib/blob/main/joeglish_translator/scripts/generateDictionary.js}. Accessed 2026-11-06.
+
+\bibitem{translatorEngine}
+Wayne Xu (attribution supplied by the Joe Team). \emph{Joeglish translation engine}. Tokenization, casing preservation, directional lookup, and round-trip computation. \url{https://github.com/N0TD3R3K/Joelib/blob/main/joeglish_translator/src/engine/joeglishEngine.ts}. Accessed 2026-11-06.
+
+\bibitem{joelements}
+Derek Li (attribution supplied by the Joe Team). \emph{The Joeriodic Table of Joelements}. Interactive interface and structured element dataset. \url{https://github.com/N0TD3R3K/Joelib/tree/main/joelements}. Accessed 2026-11-06.
+
+\bibitem{joekemon}
+Matthew DeRoma (attribution supplied by the Joe Team). \emph{Joekemon regional TSV collections}. \url{https://github.com/N0TD3R3K/Joelib}. Accessed 2026-11-06.
+
+\bibitem{joesii}
+Wayne Xu (attribution supplied by the Joe Team). \emph{JOESII and JOESII art}. Canvas-based ASCII presentation. \url{https://github.com/N0TD3R3K/Joelib/tree/main/joesii}. Accessed 2026-11-06.
+
+\bibitem{joelet}
+Emilia Marcucci (attribution supplied by the Joe Team). \emph{Joelet Speech}. Repository PDF and README-linked document. \url{https://github.com/N0TD3R3K/Joelib/blob/main/Joelet\%20Speech.pdf}. Accessed 2026-11-06.
+
+\bibitem{grammar}
+Joe Jin (the central figure himself; attribution supplied by the Joe Team). \emph{Joeglish Grammar}. Linked from the Joelib README. \url{https://github.com/N0TD3R3K/Joelib/blob/main/README.md}. Accessed 2026-11-06.
+
+\bibitem{wikiHome}
+Derek Li (attribution supplied by the Joe Team). \emph{Joelib Wiki: Home}. \url{https://github.com/N0TD3R3K/Joelib/wiki}. Accessed 2026-11-06.
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,193 @@
+JoeLang 1.0 Core Semantics
+==========================
+
+Status: design baseline
+Goal: a small, predictable language familiar to Java and C++ programmers.
+
+1. Source model
+---------------
+JoeLang is case-sensitive. A source file may contain top-level statements and
+Joebject declarations. Statements end at a newline or `;`; braces delimit blocks.
+Indentation is for readability and does not change meaning.
+
+  show "Hello, Joe!"
+
+  joebject Counter {
+    has jint value = 0
+    does increment() {
+      value = value + 1
+      give value
+    }
+  }
+
+2. Declarations and scopes
+--------------------------
+`has` declares a mutable variable. At top level it creates a file/program
+variable. Inside a Joebject body it creates owned state. Inside a behavior or
+brace-delimited block it creates a local variable.
+
+  has jint total = 0
+
+  joebject Counter {
+    has jint value = 0
+    does add(jint amount) {
+      has jint next = value + amount
+      value = next
+      give value
+    }
+  }
+
+Inside a behavior, name lookup from nearest to farthest is:
+
+  local block variable -> behavior parameter -> Joebject state -> imported alias
+
+At top level, name lookup is `local block variable -> imported alias -> top-level
+variable`. A Joebject behavior does not silently capture a top-level mutable
+variable; pass a value as a parameter instead. This prevents hidden cross-object
+state.
+
+Variables exist from their declaration until the closing brace of their scope.
+Parameters exist for one behavior invocation. Loop variables exist only inside
+their loop body.
+
+To reduce accidental mistakes, declaring a local variable or parameter with the
+same name as an active local, parameter, or Joebject state is a compile-time
+error. A package alias may not collide with any declared name.
+
+3. Types and assignment
+-----------------------
+Built-in types are `jint`, `joeble`, `joelean`, `jong`, and `strjin`.
+
+- `jint`: signed 32-bit whole number.
+- `joeble`: IEEE-754 double-precision decimal number.
+- `joelean`: `joet` or `joef`.
+- `jong`: signed 64-bit whole number; source literals use a trailing `J`, such
+  as `42J`.
+- `strjin`: immutable text.
+
+Every `has` declaration has a type in 1.0. Assignment requires the same type.
+JoeLang does not silently narrow or widen numeric values. Use explicit conversion:
+
+  has joeble ratio = type.joeble(2)
+  has jint count = type.jint(2.9)
+
+`type.jint` truncates toward zero. `type.joeble` converts integral values exactly
+when representable. Invalid conversion, non-finite joeble conversion, and numeric
+overflow produce a runtime conversion error with the source location.
+
+`gunmu` represents intentional absence. It may be assigned only to a declared
+nullable reference type, written `Type?`. Built-in numeric and `joelean` values
+are non-nullable. For example, `strjin? nickname = gunmu` is valid; `jint score =
+gunmu` is not.
+
+4. Expressions and logic
+------------------------
+The literals are `joet`, `joef`, `gunmu`, numbers, `jong` numbers with `J`, and
+quoted `strjin` values. Strings use double quotes and backslash escapes.
+
+Logical keywords are uppercase and case-sensitive:
+
+  JOT, JAND, JOR
+
+Precedence is familiar to Java/C++ programmers:
+
+  postfix: [], .length, method call, ++
+  unary: JOT, unary -
+  multiplicative: *, /, %
+  additive: +, -
+  comparisons: <, <=, >, >=
+  equality: ==, !=
+  logical: JAND, then JOR
+
+`JAND` and `JOR` short-circuit. Equality compares scalar values by value and
+arrays by element value and order. `gunmu == gunmu` is `joet`.
+
+5. Fixed Joerays
+----------------
+A fixed Joeray has a declared element type and immutable length:
+
+  has jint scores[] = [90, 84, 97]
+  has jint blank[5]
+
+`blank[5]` contains five `0` values. A `strjin[5]` contains five empty strings;
+a `joelean[5]` contains five `joef` values; a nullable reference array contains
+five `gunmu` values.
+
+Indexes are zero-based, as in Java and C++. The only valid index range is:
+
+  0 <= index < array.length
+
+Out-of-range reads or writes stop execution with a bounds error that reports the
+index, length, and source location. No negative indexing exists. `array.length`
+is read-only. `array[index] = value` requires a value of the array element type.
+Arrays cannot change length; assigning `0` overwrites an element and is not
+deletion.
+
+6. JoerayList dynamic arrays
+----------------------------
+Dynamic, length-changing lists are provided by the standard `joeraylist` package,
+not by fixed Joerays. See JoeLang_1.0_Standard_Packages.txt. This distinction
+matches the Java distinction between arrays and ArrayList.
+
+7. Control flow
+---------------
+Conditions require a `joelean` expression:
+
+  when score >= 60 {
+    show "Pass"
+  } otherwise {
+    show "Try again"
+  }
+
+Counting loop:
+
+  joeach (jint i = 0, i < 10, i++) {
+    show i
+  }
+
+Collection loop:
+
+  joeach score jin scores {
+    show score
+  }
+
+The counting-loop initialization, condition, and update use the same scope. Its
+counter disappears after the loop. `i++` adds one to a `jint` or `jong`; overflow
+is a runtime error. Collection iteration visits elements in increasing index order.
+Changing the length of a JoerayList during its own `joeach` iteration is a runtime
+error. Updating an existing fixed-Joeray element is permitted.
+
+8. Joebjects and behaviors
+--------------------------
+`joebject` declares a type; `does` declares a behavior. `newjoe Type as name`
+creates an instance. A behavior call always names its receiver explicitly:
+
+  newjoe Counter as counter
+  show counter.increment()
+
+Inside a behavior, owned state may be read or assigned by name. Calling another
+behavior on the same Joebject requires the explicit receiver `self`:
+
+  does add_twice(jint amount) {
+    self.add(amount)
+    give self.add(amount)
+  }
+
+`self` is a reserved keyword available only in a behavior. Implicit behavior calls
+and Joebject construction inside a behavior are not part of 1.0.
+
+9. Diagnostics
+--------------
+Every compilation diagnostic has a stable `JOE` code, message, start/end line and
+column, and a recovery suggestion where possible. Runtime errors include the source
+location and Joebject/behavior call stack. Compilation blocks execution when any
+error-level diagnostic exists.
+
+10. Reserved words
+------------------
+Reserved words are:
+
+  joebject has does newjoe as show give when otherwise joeach jin jinport input
+  jint joeble joelean jong strjin type joet joef gunmu JAND JOR JOT self
+
+No reserved word may be a declared name, parameter, package alias, or type name.

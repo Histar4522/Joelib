@@ -1,0 +1,96 @@
+New features in JoeLang Stable Release 1.0 (Non-AI)
+- A joebject is not required to run the code
+    - JoeLang should run without a joebject required.
+        show "Hello, Joe!"
+    - The code segment alone should display "Hello, Joe!" in the output, needless of creating an empty joebject.
+
+- Package
+    - The language pack should allow importing new packages, these packages are also functions and joebjects that can be used during programming in JoeLang. Packages should be able to be written after the first stable release, and they have to function normally without changing the studio interface UI.
+    - Add keyword "jinport" (import package) to use a package, otherwise the package is disabled.
+    - For example, if a package is named "joelanglib/lantern", it can be used like this:
+        jinport joelanglib/lantern
+        lantern.do_things()
+    - Or,
+        jinport joelanglib/lantern as lan
+        lan.do_things()
+
+- Updated Data types
+    - int -> jint
+    - double -> joeble
+    - boolean -> joelean
+    - long -> jong (suffix of J)
+    - string -> strjin
+    - Still use the keyword "has" to define variables, but the format should be like:
+        has jint number = 1
+        has joelean status = joet
+    - The "type" keyword should allow changes in data type.
+        -> type.jint(2.0) converts a joeble to jint [type.jint(joeble number)], give 2
+        -> type.joeble(2) converts a jint to joeble [type.joeble(jint number)], give 2.0
+    - When converting and creating a new variable from an existing variable,
+        has jint num1 = 2
+        has joeble num2 = type.joeble(num1)
+        (num2 gives 2.0, as joeble)
+
+- Joerays (Arrays)
+    - Joerays are groups of values in the same data type, Joerays should be able to be CRUDed (Create, Read, Update, Delete). 
+    - Create:
+        has jint list[] = [1, 2, 3, 4, 5] (it will be referred as list)
+        has jint empty_list[5] (five empty spaces)
+    - Read:
+        list[3] (gives 4, in index 3)
+        has jint fourth = list[3] (fourth gives 4, in index 3)
+    - Update:
+        has jint new_data = 100
+        list[3] = new_data (now list is [1, 2, 3, 100, 5])
+    - Delete:
+        list[3] = 0 (similar to many basic arrays, an element can be changed to 0, but it cannot be deleted)
+    - Check length:
+        list.length (gives 5, because list has 5 elements)
+
+- Updated loop logic
+    - Loops will be divided into for i (counting), and for each (each element in a list)
+    - Loop format will be more Joe, we'll change the keywords to:
+        joeach ... jin ...
+    - As an example of the for i loop:
+        joeach (jint i = 0, i < 10, i++) {
+            show i
+        }
+        which follows major languages
+    - As an example of the for each loop:
+        has list = [joe, jin, eoj, nij]
+        joeach j jin list {
+            show j
+        }
+        which is just different keyword spellings from 0.9
+
+- Updated Joelean spellings
+    - truejoe and falsejoe sound too unnatural, we'll define the joelean values again
+    - True will be named as joet
+    - False will be named as joef
+    - Null will be named as gunmu (a meme, be sure to keep the spelling when coding)
+    - Add logic operations, simply type in the name beginning in J.
+        AND -> JAND
+        OR -> JOR
+        NOT -> JOT
+        (All other gates should be constructed using these three gates)
+        joet JAND joef -> joef
+        joet JOR joef -> joet
+        JOT joet -> joef
+        JOT (joet JAND joef) -> joet
+    - Logic operations should support variables.
+        has joelean status1 = joet
+        has joelean status2 = joef
+        has joelean status3 = JOT (status1 JOR status2)
+        (status3 gives joef)
+
+- Input
+    - Besides "show", input should be designed to receive information.
+        has jint number_from_input = input("What's the number")
+        (when compiler reads this line, the user should be able to type in a jint from the output box, the compiler should then receive this number when the user press enter)
+        (if user types 2 and press enter, number_from_input should be defined as 2)
+    - Input should be able to receive strjins
+        has strjin strjin_from_input = input("What's your name")
+        (similar to the previous one, the user will type "JoeJin" and the compiler will receive this, strjin_from_input will be defined as "JoeJin")
+
+- Compatibility with Packages
+    - All data types should work well with packages, and packages should be able to establish their own reference types like Java do.

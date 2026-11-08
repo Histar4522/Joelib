@@ -3,3 +3,4 @@
 joeglish_translator/src/engine/dictionary.ts
 joeglish_translator/src/engine/dictionary.json
 joeglish_translator/scripts/entries.pdf
+.DS_Store

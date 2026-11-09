@@ -5,11 +5,11 @@ A projection of the Joe universe to the human universe, with files describing a 
 The Joe Wiki, see the Wiki page of this repository.
 
 ## 2. Literature, Language, Culture
-- **Joeglish Grammar** discovered by Joe Jin
+- **Joeglish Grammar** discovered by Alice Xiao
 
     A study on the Joeglish Grammar, an attempt to understand the Joe language.
   
-    [Joeglish Grammar Document](https://docs.google.com/document/d/1Rx4SeMx0YsXyF8olZoW1U-QVDSS87hqsPKRqKvyWZwk/edit?tab=t.0)
+    [Joeglish Grammar Document](https://docs.google.com/document/d/1fwAsxXogRWnjAU_oo-DAXIA1-HXvQ1ttxpKaq1Pfb9Y/edit?usp=sharing)
 
 - **Joegle Translate** by Wayne Xu
 

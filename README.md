@@ -69,3 +69,9 @@ The Joe Wiki, see the Wiki page of this repository.
 - **JoeLang Studio Online** by Derek Li
 
   [JoeLang Studio Website](https://joelang-studio-1-0-20261107.nurturingpeony1.chatgpt.site)
+
+- **J++ header** by Joe Jin
+
+    A basic header you would like to include in your C++ projects which will make your C++ code more joeish
+
+  [Joe.hpp](https://github.com/N0TD3R3K/Joelib/blob/main/jpp/Joe.hpp)

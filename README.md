@@ -68,7 +68,7 @@ The Joe Wiki, see the Wiki page of this repository.
   
 - **JoeLang Studio Online** by Derek Li
 
-  [JoeLang Studio Website](https://joelang-studio-1-0-20261107.nurturingpeony1.chatgpt.site)
+  [JoeLang Studio Website](https://joelang-studio.derekli.dev)
 
 - **J++ header** by Joe Jin
 
